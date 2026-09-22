@@ -1,0 +1,58 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{graphicx,booktabs,amsmath,amssymb,float,hyperref,xcolor,enumitem,fancyhdr,longtable,array}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\pagestyle{fancy}\fancyhf{}\lhead{ICS1512}\rhead{Machine Learning Algorithms Laboratory}\cfoot{\thepage}
+\begin{document}
+\begin{tabular}{|p{4cm}|p{11cm}|}\hline Experiment No. & 7 \\ \hline Experiment Title & Dimensionality Reduction and Model Evaluation (With and Without PCA) \\ \hline Student Name & L.Radesh\\ \hline Register Number & 3122247001047\\ \hline Faculty & Dr. Poreddy Ajay Kumar Reddy \\ \hline Submission Date & 31 August 2026 \\ \hline Github Repo & \url{https://github.com/RadeshL/Machine-Learning-Laboratory/blob/main/MLassign7.ipynb} \\ \hline
+\end{tabular}
+\section{Objective} To study the effect of PCA on multiple classifiers in the original and reduced feature spaces using hyperparameter tuning and 5-fold cross-validation.
+\section{Dataset Description} The uploaded Spambase dataset contains 4601 samples, 57 predictor features and a binary target. Class 0 contains 2788 samples and class 1 contains 1813 samples. No missing values were found. A stratified 80:20 train-test split was used.
+\section{Preprocessing} All predictors were standardized using training-set statistics. PCA was fitted only on training data for the With-PCA pipeline.
+\section{PCA Design} PCA retained 95\% of the training variance, reducing the feature space from 57 to 48 components (95.12\% variance retained).
+\begin{table}[H]\centering\begin{tabular}{|l|c|c|p{6cm}|}\hline Setting & Components & Explained Variance & Justification \\ \hline With-PCA & 48 & 95.12\% & Retains at least 95\% of standardized training variance. \\ \hline\end{tabular}\end{table}
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/scree_plot.png}\caption{Cumulative explained variance.}\end{figure}
+\section{Hyperparameter Tuning} Candidate configurations were evaluated on a stratified validation split of the training data; the selected configuration was subsequently evaluated with 5-fold cross-validation.
+\begin{longtable}{|p{2.3cm}|p{1.3cm}|p{6.2cm}|p{3cm}|}\hline Model & Setting & Values Tried & Selected Setting \\ \hline
+SVM & No-PCA & Kernel: linear, RBF; C: 1, 10 & rbf \\
+SVM & With-PCA & Kernel: linear, RBF; C: 1, 10 & rbf \\
+Naive Bayes & No-PCA & var smoothing: 1e-9, 1e-7 & 1e-9 \\
+Naive Bayes & With-PCA & var smoothing: 1e-9, 1e-7 & 1e-9 \\
+KNN & No-PCA & k: 5, 7; weights: uniform, distance & k7dist \\
+KNN & With-PCA & k: 5, 7; weights: uniform, distance & k7dist \\
+Logistic Regression & No-PCA & C: 1, 10; solver: liblinear & C1 \\
+Logistic Regression & With-PCA & C: 1, 10; solver: liblinear & C1 \\
+Decision Tree & No-PCA & max depth: 10, 20; min samples split: 2, 5 & d20 \\
+Decision Tree & With-PCA & max depth: 10, 20; min samples split: 2, 5 & d10 \\
+Random Forest & No-PCA & n estimators: 50; max depth: None, 15; max features: sqrt & 50sqrt \\
+Random Forest & With-PCA & n estimators: 50; max depth: None, 15; max features: sqrt & 50d15 \\
+AdaBoost & No-PCA & n estimators: 30, 50; learning rate: 1, 0.1 & 30lr1 \\
+AdaBoost & With-PCA & n estimators: 30, 50; learning rate: 1, 0.1 & 50lr.1 \\
+Gradient Boosting & No-PCA & n estimators: 30, 50; max depth: 2, 3; learning rate: 0.1 & 50d3 \\
+Gradient Boosting & With-PCA & n estimators: 30, 50; max depth: 2, 3; learning rate: 0.1 & 50d3 \\
+XGBoost & No-PCA & n estimators: 50; max depth: 3, 5; learning rate: 0.1 & 50d5 \\
+XGBoost & With-PCA & n estimators: 50; max depth: 3, 5; learning rate: 0.1 & 50d5 \\
+Stacking & No-PCA & Base learners: Logistic Regression, KNN, Naive Bayes; meta-learner: Logistic Regression & LR+KNN+NB \\
+Stacking & With-PCA & Base learners: Logistic Regression, KNN, Naive Bayes; meta-learner: Logistic Regression & LR+KNN+NB \\
+\end{longtable}
+\section{5-Fold Cross-Validation Results} Weighted F1-score is reported. Each fold cell contains No-PCA / With-PCA.
+\begin{table}[H]\centering\scriptsize\begin{tabular}{|p{2.4cm}|c|c|c|c|c|c|c|}\hline Model & Fold 1 & Fold 2 & Fold 3 & Fold 4 & Fold 5 & Avg No-PCA & Avg With-PCA \\ \hline
+SVM & 0.9442 / 0.9428 & 0.9414 / 0.9388 & 0.9345 / 0.9345 & 0.9305 / 0.9332 & 0.9263 / 0.9153 & 0.9354 & 0.9329 \\
+Naive Bayes & 0.8222 / 0.8484 & 0.8184 / 0.7683 & 0.8333 / 0.8468 & 0.8059 / 0.8227 & 0.8009 / 0.7410 & 0.8162 & 0.8054 \\
+KNN & 0.9211 / 0.9196 & 0.9198 / 0.9199 & 0.9238 / 0.9250 & 0.9275 / 0.9235 & 0.9116 / 0.9063 & 0.9208 & 0.9188 \\
+Logistic Regression & 0.9373 / 0.9331 & 0.9252 / 0.9251 & 0.9300 / 0.9234 & 0.9073 / 0.9128 & 0.9168 / 0.9112 & 0.9233 & 0.9211 \\
+Decision Tree & 0.9248 / 0.8812 & 0.9264 / 0.8903 & 0.9172 / 0.8906 & 0.9225 / 0.9023 & 0.9154 / 0.8709 & 0.9213 & 0.8871 \\
+Random Forest & 0.9605 / 0.9292 & 0.9537 / 0.9293 & 0.9564 / 0.9384 & 0.9468 / 0.9387 & 0.9467 / 0.9088 & 0.9529 & 0.9289 \\
+AdaBoost & 0.9254 / 0.8696 & 0.9238 / 0.8777 & 0.9250 / 0.8850 & 0.9334 / 0.8742 & 0.9398 / 0.8640 & 0.9295 & 0.8741 \\
+Gradient Boosting & 0.9387 / 0.9102 & 0.9372 / 0.9142 & 0.9413 / 0.9372 & 0.9372 / 0.9211 & 0.9385 / 0.8935 & 0.9386 & 0.9152 \\
+XGBoost & 0.9455 / 0.9349 & 0.9386 / 0.9349 & 0.9455 / 0.9399 & 0.9496 / 0.9375 & 0.9399 / 0.9129 & 0.9438 & 0.932 \\
+Stacking & 0.9359 / 0.9317 & 0.9373 / 0.9347 & 0.9385 / 0.9330 & 0.9210 / 0.9263 & 0.9141 / 0.9197 & 0.9294 & 0.9291 \\
+\end{tabular}\end{table}
+\section{Result Visualization}
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/confusion_svm.png}\caption{SVM confusion matrices.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/confusion_logistic_regression.png}\caption{Logistic Regression confusion matrices.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/roc_curves.png}\caption{ROC curves.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/pr_curves.png}\caption{Precision--Recall curves.}\end{figure}
+\section{Observations} The largest positive change in mean 5-fold weighted F1 after PCA was observed for Stacking (-0.0003), while the largest negative change was observed for AdaBoost (-0.0554). Fold-score standard deviation decreased for 2 of 10 models. PCA therefore had model-dependent effects rather than uniformly improving every classifier.
+\section{Conclusion} PCA reduced the 57-dimensional feature space to 48 components while retaining 95.12\% variance. The measured cross-validation results show how dimensionality reduction affected the individual classifiers.
+\end{document}

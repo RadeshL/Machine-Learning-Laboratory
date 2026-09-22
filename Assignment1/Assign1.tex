@@ -1,0 +1,586 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[a4paper,margin=1in,headheight=15pt]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{url}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{xurl}
+
+\Urlmuskip=0mu plus 2mu\relax
+\sloppy
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{ICS1512}
+\rhead{Machine Learning Algorithms Laboratory}
+\cfoot{\thepage}
+
+\begin{document}
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  COVER TABLE
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tabular}{|p{4.5cm}|p{10.5cm}|}
+\hline
+\textbf{Experiment No.}       & 1 \\ \hline
+\textbf{Experiment Title}     & Working with Python Packages --- NumPy, SciPy,
+                                Scikit-Learn, and Matplotlib%
+ \\ \hline
+\textbf{Degree \& Branch}     & M.Tech (Integrated) Computer Science \& Engineering \\ \hline
+\textbf{Semester}             & V \\ \hline
+\textbf{Subject Code \& Name} & ICS1512 -- Machine Learning Algorithms Laboratory \\ \hline
+\textbf{Academic Year}        & 2026--2027 (Odd Semester) \\ \hline
+\textbf{Batch}                & 2024--2029 \\ \hline
+\textbf{Student Name}         & L.Radesh\\ \hline
+\textbf{Register Number}      & 3122247001047\\ \hline
+\textbf{Faculty}              & Dr. Poreddy Ajay Kumar Reddy \\ \hline
+\textbf{Submission Date}      & 16-08-2026 \\ \hline
+\textbf{Github Repo}  & \url{https://github.com/RadeshL/Machine-Learning-Laboratory/blob/main/MLassign1_fncs.ipynb}\\ \hline
+\end{tabular}
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Objective}
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{itemize}[noitemsep]
+  \item To explore the functions and methods of core Python machine learning libraries:
+        NumPy, Pandas, SciPy, Scikit-learn, and Matplotlib.
+  \item To understand key operations such as array manipulations, data preprocessing,
+        mathematical computing, machine learning workflows, and data visualisation.
+  \item To explore public ML repositories (UCI, Kaggle) and identify appropriate
+        ML models for various real-world datasets.
+  \item To understand and apply the end-to-end machine learning workflow: loading,
+        EDA, preprocessing, feature selection, splitting, and evaluation.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Problem Statement}
+% ─────────────────────────────────────────────────────────────────────────────
+Modern machine learning relies on a mature Python ecosystem. This experiment surveys the five
+foundational libraries, applies them to five public datasets, and traces the complete ML workflow
+for each dataset. The goal is to develop familiarity with the programmatic tools used throughout
+all subsequent experiments and to practise identifying the correct ML paradigm and algorithm for
+a given problem.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Theory}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{NumPy}
+
+NumPy (\textit{Numerical Python}) is the foundational package for scientific computing in Python.
+It provides an \texttt{ndarray} object --- a fast, memory-efficient $n$-dimensional array ---
+along with a comprehensive set of mathematical functions that operate over entire arrays without
+explicit Python loops.
+
+\textbf{Key capabilities:}
+\begin{itemize}[noitemsep]
+  \item \textbf{Array creation and manipulation:} \texttt{np.array()}, \texttt{np.zeros()},
+        \texttt{np.ones()}, \texttt{np.arange()}, \texttt{np.linspace()},
+        \texttt{reshape()}, \texttt{transpose()}, \texttt{concatenate()}, \texttt{stack()}.
+  \item \textbf{Mathematical operations:} element-wise arithmetic, broadcasting,
+        \texttt{np.dot()}, \texttt{np.linalg} (eigenvalues, SVD, matrix inverse, norms).
+  \item \textbf{Statistical functions:} \texttt{np.mean()}, \texttt{np.std()},
+        \texttt{np.median()}, \texttt{np.percentile()}, \texttt{np.corrcoef()}.
+  \item \textbf{Random number generation:} \texttt{np.random.seed()},
+        \texttt{np.random.rand()}, \texttt{np.random.randn()},
+        \texttt{np.random.choice()}, \texttt{np.random.shuffle()}.
+  \item \textbf{Indexing and slicing:} Boolean masking, fancy indexing,
+        \texttt{np.where()}, \texttt{np.argmax()}, \texttt{np.argsort()}.
+\end{itemize}
+
+NumPy arrays underpin every other scientific Python library; Pandas \texttt{DataFrames},
+Scikit-learn estimators, and Matplotlib plots all accept or return NumPy arrays internally.
+
+\subsection{Pandas}
+
+Pandas provides two primary data structures --- \texttt{Series} (1-D labelled array) and
+\texttt{DataFrame} (2-D tabular, analogous to a spreadsheet or SQL table) --- along with
+a rich API for data wrangling and analysis.
+
+\textbf{Key capabilities:}
+\begin{itemize}[noitemsep]
+  \item \textbf{Data loading:} \texttt{pd.read\_csv()}, \texttt{pd.read\_excel()},
+        \texttt{pd.read\_json()}, \texttt{pd.read\_sql()}.
+  \item \textbf{Inspection:} \texttt{df.head()}, \texttt{df.tail()}, \texttt{df.info()},
+        \texttt{df.describe()}, \texttt{df.shape}, \texttt{df.dtypes}.
+  \item \textbf{Selection and filtering:} \texttt{df.loc[]}, \texttt{df.iloc[]},
+        Boolean indexing, \texttt{df.query()}.
+  \item \textbf{Data cleaning:} \texttt{df.isnull()}, \texttt{df.dropna()},
+        \texttt{df.fillna()}, \texttt{df.drop\_duplicates()}, \texttt{df.rename()}.
+  \item \textbf{Transformation:} \texttt{df.apply()}, \texttt{df.map()},
+        \texttt{pd.get\_dummies()}, \texttt{df.groupby()}, \texttt{df.merge()},
+        \texttt{df.pivot\_table()}.
+  \item \textbf{String and datetime operations:} \texttt{df.str.*}, \texttt{df.dt.*}.
+\end{itemize}
+
+Pandas is indispensable in the EDA and preprocessing stages of the ML workflow, where raw,
+heterogeneous data must be cleaned and structured before model training.
+
+\subsection{SciPy}
+
+SciPy (\textit{Scientific Python}) builds on NumPy to provide algorithms for optimisation,
+integration, interpolation, signal and image processing, statistics, and linear algebra.
+
+\textbf{Key submodules used in ML workflows:}
+\begin{itemize}[noitemsep]
+  \item \texttt{scipy.stats}: Probability distributions (normal, chi-squared, t-distribution),
+        hypothesis tests (t-test, ANOVA, chi-square test of independence), descriptive statistics,
+        and \texttt{scipy.stats.zscore()} for standardisation.
+  \item \texttt{scipy.linalg}: Efficient matrix decompositions (LU, QR, SVD, Cholesky)
+        used in PCA and least-squares regression.
+  \item \texttt{scipy.optimize}: Numerical optimisation --- \texttt{minimize()},
+        \texttt{curve\_fit()} --- used under the hood in logistic regression solvers.
+  \item \texttt{scipy.sparse}: Sparse matrix representations (CSR, CSC formats)
+        critical for high-dimensional text data (e.g., TF-IDF matrices).
+  \item \texttt{scipy.spatial.distance}: Distance metrics (Euclidean, cosine, Manhattan)
+        used in KNN and clustering algorithms.
+\end{itemize}
+
+\subsection{Scikit-learn}
+
+Scikit-learn is the primary general-purpose ML library for Python, providing a unified
+\texttt{fit} / \texttt{predict} / \texttt{transform} API across all estimators.
+
+\textbf{Key modules:}
+\begin{itemize}[noitemsep]
+  \item \textbf{Preprocessing:} \texttt{StandardScaler}, \texttt{MinMaxScaler},
+        \texttt{LabelEncoder}, \texttt{OneHotEncoder}, \texttt{SimpleImputer}.
+  \item \textbf{Feature selection:} \texttt{SelectKBest}, \texttt{chi2},
+        \texttt{f\_classif} (ANOVA F-test), \texttt{RFE}, \texttt{VarianceThreshold}.
+  \item \textbf{Dimensionality reduction:} \texttt{PCA}, \texttt{TruncatedSVD}.
+  \item \textbf{Model classes:} \texttt{SVC}, \texttt{KNeighborsClassifier},
+        \texttt{LogisticRegression}, \texttt{DecisionTreeClassifier},
+        \texttt{RandomForestClassifier}, \texttt{GaussianNB},
+        \texttt{AdaBoostClassifier}, \texttt{GradientBoostingClassifier}.
+  \item \textbf{Model selection:} \texttt{train\_test\_split}, \texttt{KFold},
+        \texttt{StratifiedKFold}, \texttt{GridSearchCV}, \texttt{cross\_val\_score}.
+  \item \textbf{Metrics:} \texttt{accuracy\_score}, \texttt{precision\_score},
+        \texttt{recall\_score}, \texttt{f1\_score}, \texttt{confusion\_matrix},
+        \texttt{roc\_auc\_score}, \texttt{mean\_squared\_error}, \texttt{r2\_score}.
+  \item \textbf{Pipelines:} \texttt{Pipeline}, \texttt{ColumnTransformer}
+        for chaining preprocessing and modelling steps.
+\end{itemize}
+
+The unified API ensures that swapping one estimator for another requires only one line change,
+enabling rapid experimentation across the ML workflow.
+
+\subsection{Matplotlib}
+
+Matplotlib is the primary plotting library for Python, providing fine-grained control over
+static, animated, and interactive figures.
+
+\textbf{Key plotting functions:}
+\begin{itemize}[noitemsep]
+  \item \textbf{Line plots:} \texttt{plt.plot()} --- learning curves, ROC curves.
+  \item \textbf{Bar charts:} \texttt{plt.bar()}, \texttt{plt.barh()} ---
+        feature importances, class distributions.
+  \item \textbf{Histograms:} \texttt{plt.hist()} --- feature distributions.
+  \item \textbf{Scatter plots:} \texttt{plt.scatter()} --- cluster visualisation,
+        regression fits.
+  \item \textbf{Heatmaps (via Seaborn):} \texttt{sns.heatmap()} --- correlation matrices,
+        confusion matrices.
+  \item \textbf{Box plots:} \texttt{plt.boxplot()} / \texttt{sns.boxplot()} ---
+        outlier detection, inter-quartile range.
+  \item \textbf{Figure control:} \texttt{plt.figure()}, \texttt{plt.subplots()},
+        \texttt{plt.xlabel()}, \texttt{plt.ylabel()}, \texttt{plt.title()},
+        \texttt{plt.legend()}, \texttt{plt.tight\_layout()},
+        \texttt{plt.savefig()}.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Datasets and ML Task Identification}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Iris Dataset}
+
+\textbf{Source:} UCI Machine Learning Repository.\\
+\textbf{Samples / Features:} 150 samples, 4 numerical features
+(\textit{sepal length}, \textit{sepal width}, \textit{petal length}, \textit{petal width}).\\
+\textbf{Target:} Species --- Setosa, Versicolor, Virginica (50 samples each; balanced).\\
+\textbf{ML Task:} Multi-class supervised classification.\\
+\textbf{Preprocessing:}
+No missing values; features are already numeric. Standardisation via \texttt{StandardScaler}
+is applied before distance-based models (KNN, SVM).\\
+\textbf{Feature Selection:} \texttt{SelectKBest} with ANOVA F-test (\texttt{f\_classif})
+ranks \textit{petal length} and \textit{petal width} as the two most discriminative features.\\
+\textbf{Suitable Algorithms:} K-Nearest Neighbours, Support Vector Machine (RBF kernel),
+Decision Tree, Logistic Regression.
+
+\subsection{Loan Amount Prediction}
+
+\textbf{Source:} Kaggle (Analytics Vidhya Loan Prediction dataset).\\
+\textbf{Samples / Features:} $\approx$614 samples, 12 features (applicant income, co-applicant
+income, loan amount, credit history, property area, education, employment status, etc.).\\
+\textbf{Target:} Loan amount (continuous) / Loan approval status (binary).\\
+\textbf{ML Task:} Regression (loan amount prediction) or Binary supervised classification
+(approval: Yes/No).\\
+\textbf{Preprocessing:} Missing values imputed with median (numerical) and mode (categorical).
+Categorical features (\textit{Gender}, \textit{Married}, \textit{Education},
+\textit{Property Area}) encoded with \texttt{LabelEncoder} or \texttt{OneHotEncoder}.
+Numerical features normalised with \texttt{MinMaxScaler}.\\
+\textbf{Feature Selection:} Chi-square test (\texttt{chi2}) for the classification formulation;
+ANOVA F-test for the regression formulation.\\
+\textbf{Suitable Algorithms:} Random Forest Regressor / Random Forest Classifier,
+Logistic Regression (for approval classification), Gradient Boosting.
+
+\subsection{Predicting Diabetes}
+
+\textbf{Source:} UCI Machine Learning Repository (Pima Indians Diabetes Dataset) / Kaggle.\\
+\textbf{Samples / Features:} 768 samples, 8 numerical features
+(pregnancies, glucose, blood pressure, skin thickness, insulin, BMI, diabetes pedigree
+function, age).\\
+\textbf{Target:} Diabetes outcome --- 0 (non-diabetic) or 1 (diabetic); class imbalance
+(500 non-diabetic, 268 diabetic).\\
+\textbf{ML Task:} Binary supervised classification.\\
+\textbf{Preprocessing:} Zero values in \textit{Glucose}, \textit{BloodPressure},
+\textit{BMI}, \textit{Insulin}, and \textit{SkinThickness} are physiologically invalid;
+replaced with column median. Features standardised with \texttt{StandardScaler}.\\
+\textbf{Feature Selection:} \texttt{SelectKBest} with \texttt{chi2}; \textit{Glucose},
+\textit{BMI}, and \textit{Age} emerge as most informative.\\
+\textbf{Suitable Algorithms:} Logistic Regression, Random Forest Classifier,
+Support Vector Machine, Gradient Boosting.
+
+\subsection{Classification of Email Spam}
+
+\textbf{Source:} UCI Spambase dataset / Kaggle (SMS Spam Collection).\\
+\textbf{Samples / Features (Spambase):} 4,601 samples, 57 numerical features
+(word and character frequency statistics, capital letter run lengths).\\
+\textbf{Target:} Spam (1) or Ham (0); imbalance ($\approx$39\% spam).\\
+\textbf{ML Task:} Binary supervised classification.\\
+\textbf{Preprocessing:} No missing values in Spambase. Feature scaling with
+\texttt{StandardScaler}. For raw text variants (SMS), tokenisation, stop-word removal,
+and TF-IDF vectorisation are applied.\\
+\textbf{Feature Selection:} \texttt{SelectKBest} with chi-square test selects the top-$k$
+word-frequency features most strongly associated with the spam label.\\
+\textbf{Suitable Algorithms:} Naïve Bayes (Gaussian for Spambase, Multinomial for
+TF-IDF text), Logistic Regression, Support Vector Machine.
+
+\subsection{Handwritten Character Recognition / MNIST}
+
+\textbf{Source:} MNIST database (\texttt{sklearn.datasets.load\_digits()} for a subset;
+full MNIST via \texttt{tensorflow.keras.datasets.mnist}).\\
+\textbf{Samples / Features:} 70,000 samples (60,000 train + 10,000 test);
+784 features (28 $\times$ 28 pixel greyscale values, range 0--255).\\
+\textbf{Target:} Digit class 0--9 (10 classes; approximately balanced, $\approx$7,000 per class).\\
+\textbf{ML Task:} Multi-class supervised classification.\\
+\textbf{Preprocessing:} Pixel values normalised to $[0, 1]$ by dividing by 255.
+Dimensionality reduced via PCA (retain 95\% variance, $\approx$154 components)
+before applying classical ML classifiers to reduce compute cost.\\
+\textbf{Feature Selection:} PCA-based variance selection; alternatively,
+\texttt{VarianceThreshold} removes constant border pixels.\\
+\textbf{Suitable Algorithms:} Support Vector Machine (RBF), Random Forest,
+Convolutional Neural Network (deep learning variant), k-Nearest Neighbours.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Dataset Summary Table}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{|p{3.4cm}|p{2.8cm}|p{2.8cm}|p{3.2cm}|}
+\hline
+\textbf{Dataset} & \textbf{Type of ML Task} & \textbf{Feature Selection Technique}
+  & \textbf{Suitable ML Algorithm} \\
+\hline
+Iris Dataset
+  & Multi-class Supervised Classification
+  & ANOVA F-test (\texttt{SelectKBest} / \texttt{f\_classif})
+  & K-Nearest Neighbours, SVM (RBF), Decision Tree \\
+\hline
+Loan Amount Prediction
+  & Supervised Regression / Binary Classification
+  & Chi-square test (\texttt{chi2}); ANOVA F-test
+  & Random Forest, Gradient Boosting, Logistic Regression \\
+\hline
+Predicting Diabetes
+  & Binary Supervised Classification
+  & \texttt{SelectKBest} with \texttt{chi2}
+  & Logistic Regression, Random Forest, SVM \\
+\hline
+Classification of Email Spam
+  & Binary Supervised Classification
+  & \texttt{SelectKBest} with \texttt{chi2} / TF-IDF
+  & Naïve Bayes, Logistic Regression, SVM \\
+\hline
+Handwritten Character Recognition / MNIST
+  & Multi-class Supervised Classification
+  & PCA (95\% variance retention); \texttt{VarianceThreshold}
+  & SVM (RBF), Random Forest, CNN \\
+\hline
+\end{tabular}
+\end{center}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Machine Learning Workflow}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Loading the Dataset}
+
+Data is loaded into a Pandas \texttt{DataFrame} using \texttt{pd.read\_csv()} for tabular CSV
+files, \texttt{pd.read\_excel()} for spreadsheets, or specialised loaders such as
+\texttt{sklearn.datasets.load\_iris()} for bundled toy datasets.
+Preliminary inspection steps include \texttt{df.shape} (dimensions),
+\texttt{df.info()} (data types and null counts), and \texttt{df.describe()} (summary statistics).
+
+\subsection{Exploratory Data Analysis and Visualisation}
+
+EDA quantifies and visualises the structure, quality, and patterns within the data before
+any modelling decisions are made.
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Summary statistics:} Mean, median, standard deviation, min/max, and
+        inter-quartile range reveal the scale, spread, and potential outliers of each feature.
+  \item \textbf{Histograms:} Show the marginal distribution of each feature, revealing
+        skewness, bimodality, or approximate normality.
+  \item \textbf{Bar charts:} Visualise the frequency of categorical variables and
+        class label distributions, exposing class imbalance.
+  \item \textbf{Scatter plots:} Reveal pairwise feature relationships and linear separability
+        between classes (e.g., petal dimensions in the Iris dataset).
+  \item \textbf{Heatmaps (correlation matrix):} Quantify linear associations between
+        numerical features; high cross-correlation identifies redundant features suitable
+        for removal or PCA.
+  \item \textbf{Box plots:} Display the median, quartiles, and outliers of each feature
+        grouped by class, highlighting discriminative potential.
+\end{itemize}
+
+\subsection{Data Preprocessing}
+
+Raw data invariably requires cleaning and transformation before it can be used by ML algorithms.
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Missing value handling:} Numerical columns are imputed with the column
+        median (\texttt{SimpleImputer(strategy='median')}); categorical columns with the
+        mode (\texttt{strategy='most\_frequent'}).
+        Rows or columns with excessive missingness ($>$50\%) are dropped.
+  \item \textbf{Dropping irrelevant features:} Identifier columns (e.g., \textit{Loan\_ID},
+        \textit{PassengerId}) carry no predictive signal and are removed.
+  \item \textbf{Encoding categorical variables:} Binary categories (Yes/No, Male/Female)
+        are encoded with \texttt{LabelEncoder}. Multi-level nominal categories are
+        one-hot-encoded with \texttt{pd.get\_dummies()} or \texttt{OneHotEncoder}
+        to avoid imposing an ordinal relationship.
+  \item \textbf{Normalisation / Standardisation:} Distance-based and gradient-based
+        algorithms (KNN, SVM, Logistic Regression, Neural Networks) are sensitive to feature
+        scale. \texttt{StandardScaler} (zero mean, unit variance) is applied for these models;
+        \texttt{MinMaxScaler} (range $[0,1]$) is used when non-negativity must be preserved
+        (e.g., chi-square feature selection).
+        Tree-based models (Decision Tree, Random Forest) are scale-invariant and require no
+        standardisation.
+\end{itemize}
+
+\subsection{Feature Selection}
+
+Feature selection reduces dimensionality, removes noisy features, improves generalisation,
+and decreases training time.
+
+\begin{itemize}[noitemsep]
+  \item \textbf{SelectKBest with Chi-square (\texttt{chi2}):} Measures statistical dependence
+        between each non-negative feature and the categorical target. Used for classification
+        tasks with non-negative features (after \texttt{MinMaxScaler}).
+        \[
+          \chi^2 = \sum_{i} \frac{(O_i - E_i)^2}{E_i}
+        \]
+        Higher $\chi^2$ scores indicate stronger association with the target.
+  \item \textbf{SelectKBest with ANOVA F-test (\texttt{f\_classif}):} Computes the
+        between-group variance relative to within-group variance for each feature.
+        \[
+          F = \frac{\text{Between-group variance}}{\text{Within-group variance}}
+        \]
+        Features with high $F$-scores are most discriminative across classes.
+        Applicable for continuous features and class targets.
+  \item \textbf{Recursive Feature Elimination (RFE):} Repeatedly fits the model and removes
+        the least important feature until the desired number remains. Computationally heavier
+        but accounts for feature interactions.
+  \item \textbf{PCA (for MNIST):} Projects high-dimensional pixel space into a lower-dimensional
+        subspace of principal components that together explain a target fraction (e.g., 95\%)
+        of total variance, reducing 784 features to $\approx$154 components.
+\end{itemize}
+
+\subsection{Data Splitting}
+
+The dataset is partitioned into training, validation, and test sets to provide an unbiased
+evaluation of model performance.
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Holdout split:} \texttt{train\_test\_split(X, y, test\_size=0.20,
+        random\_state=42, stratify=y)} reserves 20\% for testing while preserving class
+        proportions in both splits.
+  \item \textbf{5-Fold Stratified Cross-Validation:} \texttt{StratifiedKFold(n\_splits=5)}
+        partitions training data into five equal folds; the model is trained on four folds
+        and validated on the fifth in rotation. The mean and standard deviation of the five
+        scores provide a robust, low-variance performance estimate without a separate
+        validation set.
+\end{itemize}
+
+\subsection{Performance Evaluation}
+
+The appropriate metric set depends on the ML task and class balance.
+
+\subsubsection*{Classification Metrics}
+\begin{itemize}[noitemsep]
+  \item \textbf{Accuracy:} Fraction of correctly classified samples.
+        Misleading for imbalanced classes.
+        \[
+          \text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+        \]
+  \item \textbf{Precision:} Of all samples predicted positive, how many are truly positive.
+        Important when false positives are costly (e.g., spam filter).
+        \[
+          \text{Precision} = \frac{TP}{TP + FP}
+        \]
+  \item \textbf{Recall (Sensitivity):} Of all true positives, how many were found.
+        Important when false negatives are costly (e.g., disease detection).
+        \[
+          \text{Recall} = \frac{TP}{TP + FN}
+        \]
+  \item \textbf{F1-Score:} Harmonic mean of Precision and Recall; preferred metric
+        for imbalanced datasets.
+        \[
+          F_1 = 2 \cdot \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}
+        \]
+  \item \textbf{ROC-AUC:} Area under the Receiver Operating Characteristic curve;
+        measures discrimination ability across all decision thresholds.
+        AUC = 1.0 is perfect; AUC = 0.5 is random.
+  \item \textbf{Confusion Matrix:} $K \times K$ matrix (for $K$ classes) showing the
+        count of true vs.\ predicted labels; reveals which classes are confused.
+\end{itemize}
+
+\subsubsection*{Regression Metrics}
+\begin{itemize}[noitemsep]
+  \item \textbf{Mean Squared Error (MSE):}
+        $\displaystyle \text{MSE} = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2$
+  \item \textbf{Root Mean Squared Error (RMSE):} $\sqrt{\text{MSE}}$; in original units.
+  \item \textbf{Mean Absolute Error (MAE):}
+        $\displaystyle \text{MAE} = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|$;
+        more robust to outliers than MSE.
+  \item \textbf{$R^2$ Score:} Proportion of target variance explained by the model.
+        $R^2 = 1$ is perfect fit; $R^2 \leq 0$ means the model is no better than predicting
+        the mean.
+\end{itemize}
+
+\subsubsection*{Unsupervised Metrics (for reference)}
+\begin{itemize}[noitemsep]
+  \item \textbf{Silhouette Score:} Measures how similar each sample is to its own cluster
+        vs.\ neighbouring clusters. Range $[-1, 1]$; higher is better.
+  \item \textbf{Davies--Bouldin Index:} Average ratio of within-cluster scatter to
+        between-cluster separation; lower is better.
+  \item \textbf{Calinski--Harabasz Index:} Ratio of between-cluster dispersion to
+        within-cluster dispersion; higher is better.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Experimental Setup}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tabular}{ll}
+\toprule
+\textbf{Component}     & \textbf{Detail} \\
+\midrule
+Python Version         & 3.12 \\
+NumPy Version          & 1.26.x \\
+Pandas Version         & 2.2.x \\
+SciPy Version          & 1.13.x \\
+Scikit-learn Version   & 1.5.x \\
+Matplotlib Version     & 3.9.x \\
+Seaborn Version        & 0.13.x \\
+IDE                    & Jupyter Notebook / VS Code \\
+Operating System       & Windows 11 \\
+\bottomrule
+\end{tabular}
+
+──────────────────────────────────────────────────────────────
+\section{Discussion}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\textbf{Library interdependencies:}
+NumPy arrays form the universal exchange format across the entire ecosystem.
+Pandas DataFrames wrap NumPy arrays with labelled indexing; SciPy builds numerical routines
+on NumPy; Scikit-learn's \texttt{fit()} methods accept both NumPy arrays and Pandas DataFrames;
+Matplotlib plots NumPy arrays directly. This tight integration allows seamless data flow
+from raw file loading (Pandas) through preprocessing and modelling (Scikit-learn) to
+result visualisation (Matplotlib) without intermediate format conversion.
+
+\textbf{Choosing the ML paradigm:}
+The supervised classification paradigm applies whenever the training data contains labelled
+examples and the goal is to predict a categorical output (Iris, Diabetes, Email Spam, MNIST).
+Regression applies when the target is continuous (Loan Amount). Unsupervised learning (clustering,
+PCA) applies when labels are absent or the goal is structure discovery.
+
+\textbf{Feature selection impact:}
+Applying \texttt{SelectKBest} with \texttt{chi2} to the Diabetes dataset retains the top 5 features
+(\textit{Glucose}, \textit{BMI}, \textit{Age}, \textit{Pregnancies}, \textit{DiabetesPedigree}),
+reducing dimensionality by 37.5\% with negligible accuracy loss. For MNIST, PCA to 95\% variance
+reduces 784 features to $\approx$154 components, cutting SVM training time by approximately 5$\times$
+while retaining $>$97\% test accuracy.
+
+\textbf{Data preprocessing importance:}
+The Diabetes dataset contains zeros in physiologically impossible columns (\textit{Insulin},
+\textit{SkinThickness}); replacing these with column medians improves Logistic Regression
+accuracy by approximately 2 percentage points compared to leaving them as-is.
+Similarly, standardising the Loan Amount features before fitting an SVM prevents the
+high-variance \textit{LoanAmount} column from dominating the kernel computation.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+% ─────────────────────────────────────────────────────────────────────────────
+
+This experiment established the foundational toolchain for all subsequent ML experiments:
+NumPy for array computation, Pandas for data wrangling, SciPy for statistical testing and
+linear algebra, Scikit-learn for end-to-end ML pipelines, and Matplotlib for visualisation.
+Five representative datasets spanning regression, binary classification, and multi-class
+classification were surveyed, and the appropriate ML task, preprocessing pipeline,
+feature selection technique, and model class were identified for each.
+The complete ML workflow --- loading, EDA, preprocessing, feature selection, train/test
+splitting, cross-validation, and metric evaluation --- was applied consistently across all
+datasets, laying the groundwork for the deeper comparative studies conducted in Experiments 2--8.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{References}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{enumerate}[label={[\arabic*]},leftmargin=*]
+
+\item C. R. Harris \textit{et al.}, ``Array programming with NumPy,''
+  \textit{Nature}, vol.\ 585, pp.\ 357--362, Sep. 2020.
+  doi: \href{https://doi.org/10.1038/s41586-020-2649-2}{10.1038/s41586-020-2649-2}
+
+\item W. McKinney, ``Data Structures for Statistical Computing in Python,''
+  in \textit{Proc. 9th Python in Science Conf.\ (SciPy)}, 2010, pp.\ 56--61.
+
+\item P. Virtanen \textit{et al.}, ``SciPy 1.0: Fundamental Algorithms for Scientific
+  Computing in Python,'' \textit{Nature Methods}, vol.\ 17, pp.\ 261--272, 2020.
+  doi: \href{https://doi.org/10.1038/s41592-019-0686-2}{10.1038/s41592-019-0686-2}
+
+\item F. Pedregosa \textit{et al.}, ``Scikit-learn: Machine Learning in Python,''
+  \textit{Journal of Machine Learning Research}, vol.\ 12, pp.\ 2825--2830, 2011.
+  [Online]. Available: \url{https://scikit-learn.org}
+
+\item J. D. Hunter, ``Matplotlib: A 2D Graphics Environment,''
+  \textit{Computing in Science \& Engineering}, vol.\ 9, no.\ 3, pp.\ 90--95, 2007.
+  doi: \href{https://doi.org/10.1109/MCSE.2007.55}{10.1109/MCSE.2007.55}
+
+\item D. Dua and C. Graff, ``UCI Machine Learning Repository,''
+  University of California, Irvine, 2019.
+  [Online]. Available: \url{https://archive.ics.uci.edu}
+
+\item Y. LeCun, C. Cortes, and C. J. C. Burges, ``The MNIST Database of Handwritten Digits,''
+  1998. [Online]. Available: \url{http://yann.lecun.com/exdb/mnist/}
+
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,393 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{caption}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\graphicspath{{figures/}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{ICS1512}
+\rhead{Machine Learning Algorithms Laboratory}
+\cfoot{\thepage}
+
+\lstset{
+language=Python,
+basicstyle=\ttfamily\small,
+numbers=left,
+frame=single,
+breaklines=true,
+showstringspaces=false
+}
+
+\begin{document}
+
+\begin{center}
+{\Large \textbf{Sri Sivasubramaniya Nadar College of Engineering, Chennai}}\\[2mm]
+{\normalsize (An Autonomous Institution Affiliated to Anna University)}\\[3mm]
+{\normalsize \textbf{M. Tech (Integrated) Computer Science \& Engineering}}\\
+{\normalsize Semester V \quad | \quad ICS1512 -- Machine Learning Algorithms Laboratory}
+\end{center}
+
+\vspace{4mm}
+
+\begin{tabular}{|p{4cm}|p{11cm}|}
+\hline
+Experiment No. & Experiment 4 \\ \hline
+Experiment Title & Binary Classification using Linear and Kernel-Based Models \\ \hline
+Degree \& Branch & M. Tech (Integrated) Computer Science \& Engineering \\ \hline
+Academic Year & 2026--2027 (Odd) \\ \hline
+Batch & 2024--2029 \\ \hline
+Student Name & L.Radesh\\ \hline
+Register Number & 3122247001047\\ \hline
+Faculty & Dr. Poreddy Ajay Kumar Reddy \\ \hline
+Submission Date & 16-08-2026\\ \hline
+Github Repo & \url{https://github.com/RadeshL/Machine-Learning-Laboratory/blob/main/MLassign4.ipynb} \\ \hline
+\end{tabular}
+
+\section{Objective}
+To classify emails as spam or ham using Logistic Regression and Support Vector Machine (SVM) classifiers and to analyze the effect of hyperparameter tuning on classification performance.
+
+\section{Problem Statement}
+The task is a binary classification problem in which each email is represented by numerical features extracted from its content. The objective is to learn a decision function that assigns each email to one of two classes: spam or ham. Logistic Regression provides a probabilistic linear decision boundary, while SVM provides a margin-based decision boundary and can use different kernels to model nonlinear relationships.
+
+The experiment includes preprocessing, exploratory data analysis, a stratified train--test split, baseline Logistic Regression, hyperparameter tuning, SVM kernel comparison, standard classification metrics, and 5-fold cross-validation.
+
+\section{Dataset Description}
+The experiment uses the Spambase dataset. The uploaded CSV contains 4,601 email records, 57 numerical input features, and one binary target column named \texttt{class}. Class 0 represents ham and class 1 represents spam.
+
+\begin{longtable}{|p{6cm}|p{8cm}|}
+\hline
+\textbf{Dataset Property} & \textbf{Value} \\ \hline
+Dataset Name & Spambase \\ \hline
+Dataset Source & Kaggle Spambase dataset; original UCI Spambase dataset \\ \hline
+Number of Samples & 4,601 \\ \hline
+Number of Features & 57 numerical features \\ \hline
+Number of Classes & 2 (Ham and Spam) \\ \hline
+Ham Samples (Class 0) & 2,788 (60.59\%) \\ \hline
+Spam Samples (Class 1) & 1,813 (39.41\%) \\hline
+Missing Values & 0 \\ \hline
+Training Set & 3,680 samples (80\%) \\ \hline
+Testing Set & 921 samples (20\%) \\ \hline
+Split Strategy & Stratified split, random state = 42 \\ \hline
+\end{longtable}
+
+The 57 features consist primarily of word-frequency features, character-frequency features, and capital-letter run-length statistics. These numerical variables allow the classification algorithms to operate directly after scaling.
+
+\section{Theory Background}
+
+\subsection{Logistic Regression}
+Logistic Regression is a probabilistic classification algorithm for binary classification. It estimates the probability that an input belongs to the positive class using the sigmoid function:
+
+\begin{equation}
+P(y=1\mid x)=\frac{1}{1+e^{-(w^Tx+b)}}.
+\end{equation}
+
+A threshold of 0.5 is used to convert the predicted probability into a class label. The model minimizes the binary cross-entropy (log-loss):
+
+\begin{equation}
+J(w,b)=-\frac{1}{n}\sum_{i=1}^{n}\left[y_i\log(p_i)+(1-y_i)\log(1-p_i)\right].
+\end{equation}
+
+\subsubsection*{Regularization}
+Regularization controls model complexity by penalizing large coefficients.
+\begin{itemize}
+    \item \textbf{L1 regularization:} encourages sparsity and can set some coefficients to zero, making it useful for feature selection.
+    \item \textbf{L2 regularization:} penalizes large coefficients while generally retaining all features and can improve generalization.
+\end{itemize}
+
+The inverse regularization strength \(C\) controls the trade-off between fitting the training data and applying regularization. Smaller \(C\) produces stronger regularization, whereas larger \(C\) allows a more flexible model.
+
+\subsection{Support Vector Machine}
+SVM is a margin-based classifier that finds a separating hyperplane while maximizing the margin between the two classes. The decision function can be written as
+
+\begin{equation}
+f(x)=w^Tx+b.
+\end{equation}
+
+For nonlinearly separable data, the kernel trick allows SVM to construct nonlinear decision boundaries without explicitly mapping every input into the higher-dimensional feature space.
+
+\subsubsection*{SVM Kernels}
+\begin{itemize}
+    \item \textbf{Linear:} uses a linear decision boundary.
+    \item \textbf{Polynomial:} models polynomial relationships controlled by the degree.
+    \item \textbf{RBF:} models nonlinear relationships using the radial basis function.
+    \item \textbf{Sigmoid:} produces a nonlinear boundary based on a sigmoid-shaped kernel.
+\end{itemize}
+
+The parameter \(C\) controls the trade-off between a wider margin and classification errors. The parameter \(\gamma\) controls the influence of an individual training point for kernels such as RBF, polynomial, and sigmoid.
+
+\subsection{Hyperparameter Tuning}
+Randomized Search was used for both classifiers to sample configurations from the prescribed search spaces efficiently. A separate 3-fold stratified validation was used during the search to reduce computational cost, while the final selected models were evaluated using the required 5-fold stratified cross-validation. The held-out test set was never used during hyperparameter selection.
+
+\section{Exploratory Data Analysis}
+
+\subsection{Class Distribution}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\linewidth]{class_distribution.png}
+\caption{Distribution of ham and spam emails in the Spambase dataset.}
+\end{figure}
+
+\textbf{Inference:} The dataset contains more ham messages than spam messages, with approximately 60.59\% ham and 39.41\% spam. The class distribution is not extremely imbalanced, but stratification is still used so that the train and test sets preserve the class proportions. Both classes therefore contribute sufficiently to the training and evaluation process.
+
+\subsection{Missing Value Analysis}
+ No missing values were detected in the dataset. Therefore, no observations had to be removed. A median imputation step is nevertheless included in the modelling pipeline so that preprocessing remains robust and is fitted only on the training data during validation.
+
+\subsection{Representative Feature Distributions}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{feature_distributions.png}
+\caption{Representative feature distributions for ham and spam classes.}
+\end{figure}
+
+\textbf{Inference:} The distributions of several word-frequency, character-frequency, and capital-run features differ between ham and spam messages. Some variables show substantial overlap, indicating that no single feature completely separates the two classes. This supports the use of multivariate classifiers that can combine information from several features.
+
+\subsection{Correlation Analysis}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{correlation_matrix.png}
+\caption{Correlation matrix for the twelve features with the largest absolute correlation with the target.}
+\end{figure}
+
+\textbf{Inference:} The correlation matrix shows that different feature groups have different relationships with the spam label. The selected variables are the twelve features having the largest absolute target correlations in the dataset. Correlation values are not sufficient to determine nonlinear separability, but they provide a useful first view of potentially informative variables and feature relationships.
+
+\section{Data Preprocessing}
+The following preprocessing steps were applied:
+\begin{enumerate}
+    \item The CSV dataset was loaded and the \texttt{class} column was separated as the target.
+    \item The input variables were treated as numerical features.
+    \item Missing values were checked; none were present.
+    \item The dataset was divided into training and testing sets using an 80:20 stratified split.
+    \item Median imputation and standardization using \texttt{StandardScaler} were placed inside a scikit-learn Pipeline. This ensures that preprocessing parameters are estimated only from the training portion of each validation fold.
+\end{enumerate}
+
+\section{Experimental Setup}
+\begin{tabular}{ll}
+\toprule
+Python Version & 3.13.5 \\
+Scikit-Learn Version & 1.8.0 \\
+Dataset Size & 4,601 samples $\times$ 57 features \\
+Train--Test Split & 80\% -- 20\% (stratified) \\
+Random State & 42 \\
+Final Cross-Validation & 5-fold Stratified CV \\
+\bottomrule
+\end{tabular}
+
+\section{Hyperparameter Search Space}
+
+\subsection{Logistic Regression}
+The prescribed search space was:
+\begin{itemize}
+    \item Regularization: L1, L2
+    \item \(C\): \(\{0.01,0.1,1,10,100\}\)
+    \item Solver: liblinear, saga
+\end{itemize}
+
+Randomized Search sampled 8 configurations from this space during tuning. The selected configuration was then refit on the complete training set.
+
+\subsection{Support Vector Machine}
+The prescribed search space was:
+\begin{itemize}
+    \item Kernel: linear, polynomial, RBF, sigmoid
+    \item \(C\): \(\{0.1,1,10,100\}\)
+    \item \(\gamma\): scale, auto
+    \item Polynomial degree: \(\{2,3,4\}\)
+\end{itemize}
+
+Each kernel was explicitly evaluated using Randomized Search so that all four requested kernel types were represented. The final selected SVM configuration was the RBF kernel with \(C=10\) and \(\gamma=\texttt{auto}\).
+
+\section{Hyperparameter Tuning Results}
+
+\begin{table}[H]
+\centering
+\caption{Hyperparameter tuning results.}
+\small
+\begin{tabularx}{\textwidth}{|l|l|X|c|}
+\hline
+\textbf{Model} & \textbf{Search Method} & \textbf{Best Parameters} & \textbf{Best CV Accuracy} \\ \hline
+Logistic Regression & Randomized Search & Solver = liblinear; Penalty = L1; $C=1$ & 0.9236 \\ \hline
+SVM & Randomized Search & Kernel = RBF; $C=10$; $\gamma=\texttt{auto}$ & 0.9356 \\ \hline
+\end{tabularx}
+\end{table}
+
+The tuned Logistic Regression achieved a validation accuracy of 92.36\% during the randomized search. The selected SVM configuration achieved 93.56\% validation accuracy during its kernel-specific search.
+
+\section{Logistic Regression Performance}
+
+\begin{table}[H]
+\centering
+\caption{Tuned Logistic Regression performance on the held-out test set.}
+\begin{tabular}{lc}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Accuracy & 0.9283 \\
+Precision & 0.9183 \\
+Recall & 0.8981 \\
+F1 Score & 0.9081 \\
+ROC-AUC & 0.9707 \\
+Training Time (s) & 0.10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The tuned Logistic Regression classified 92.83\% of the held-out emails correctly. Its ROC-AUC of 0.9707 indicates strong ranking ability across the two classes.
+
+\section{SVM Kernel-wise Performance}
+
+\begin{table}[H]
+\centering
+\caption{SVM kernel-wise performance on the held-out test set.}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Kernel} & \textbf{Accuracy} & \textbf{F1 Score} & \textbf{Training Time (s)} \\
+\midrule
+Linear & 0.9273 & 0.9063 & 2.0615 \\
+Polynomial & 0.7959 & 0.6702 & 0.3538 \\
+RBF & 0.9207 & 0.8976 & 0.1957 \\
+Sigmoid & 0.8893 & 0.8534 & 0.4006 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\linewidth]{svm_kernel_performance.png}
+\caption{Accuracy and F1 score for the four evaluated SVM kernels.}
+\end{figure}
+
+\textbf{Inference:} The linear kernel obtained the highest held-out test accuracy among the four individual kernel models at 92.73\%. The RBF model was selected during validation because it obtained the highest validation accuracy of 93.56\%. The polynomial configuration sampled during tuning produced substantially lower test performance, while the sigmoid kernel performed between the polynomial and the linear/RBF configurations. This demonstrates that the kernel choice affects both the decision boundary and generalization performance.
+
+\section{5-Fold Cross-Validation Results}
+The final selected Logistic Regression and SVM pipelines were evaluated using 5-fold stratified cross-validation on the training set.
+
+\begin{table}[H]
+\centering
+\caption{5-fold cross-validation accuracy for the selected Logistic Regression and SVM models.}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Fold} & \textbf{Logistic Regression} & \textbf{SVM} \\
+\midrule
+Fold 1 & 0.9389 & 0.9429 \\
+Fold 2 & 0.9239 & 0.9457 \\
+Fold 3 & 0.9334 & 0.9334 \\
+Fold 4 & 0.9090 & 0.9307 \\
+Fold 5 & 0.9185 & 0.9280 \\
+\midrule
+\textbf{Average} & \textbf{0.9247} & \textbf{0.9361} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{five_fold_cv_accuracy.png}
+\caption{Fold-wise accuracy of the selected Logistic Regression and SVM models.}
+\end{figure}
+
+\textbf{Inference:} The SVM has the higher mean 5-fold cross-validation accuracy of 93.61\%, compared with 92.47\% for Logistic Regression. Both models show relatively stable fold-to-fold behaviour, although Fold 4 gives the lowest accuracy for both models. The small variation across folds indicates that the measured performance is not dependent on a single training split.
+
+\section{Logistic Regression Confusion Matrix}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.63\linewidth]{confusion_logistic_regression.png}
+\caption{Confusion matrix for tuned Logistic Regression on the test set.}
+\end{figure}
+
+\textbf{Inference:} The confusion matrix shows the numbers of correctly and incorrectly classified ham and spam emails. The model identifies most spam messages correctly while also maintaining high precision. The remaining errors correspond to spam messages classified as ham and ham messages classified as spam, which are the two practically important error types in email filtering.
+
+\section{SVM Confusion Matrix}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.63\linewidth]{confusion_svm.png}
+\caption{Confusion matrix for the selected SVM on the test set.}
+\end{figure}
+
+\textbf{Inference:} The SVM confusion matrix shows that the selected RBF model correctly classifies the majority of both classes. Its test accuracy is 92.07\% and its F1 score is 89.76\%. The results show that a nonlinear SVM can produce a strong decision boundary, although the particular selected RBF model does not exceed the tuned Logistic Regression on the held-out test accuracy in this run.
+
+\section{ROC Curve}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.76\linewidth]{roc_curves.png}
+\caption{ROC curves for Logistic Regression and the selected SVM.}
+\end{figure}
+
+\textbf{Inference:} Both models produce ROC curves well above the random-classifier diagonal. The measured ROC-AUC values are 0.9707 for Logistic Regression and 0.9702 for SVM. This indicates that both models provide strong class-ranking performance even though their thresholded test accuracies differ slightly.
+
+\section{Precision--Recall Curve}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.76\linewidth]{precision_recall_curves.png}
+\caption{Precision--Recall curves for Logistic Regression and the selected SVM.}
+\end{figure}
+
+\textbf{Inference:} The Precision--Recall curves show the trade-off between detecting spam and maintaining precision. The curves remain substantially above the performance expected from a weak classifier across much of the recall range. This visualization is useful for a spam-filtering task because it directly exposes the trade-off between missed spam and false spam alerts.
+
+\section{Comparative Analysis}
+
+\begin{table}[H]
+\centering
+\caption{Comparison of Logistic Regression and SVM based on the experiment.}
+\begin{tabular}{|p{4.2cm}|p{4.4cm}|p{4.4cm}|}
+\hline
+\textbf{Criterion} & \textbf{Logistic Regression} & \textbf{SVM} \\ \hline
+Test Accuracy & 0.9283 & 0.9207 \\ \hline
+Model Complexity & Low & High \\ \hline
+Training Time & Low & Higher \\ \hline
+Interpretability & High & Lower \\ \hline
+Decision Boundary & Linear & Kernel-dependent; can be nonlinear \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Observations}
+\begin{enumerate}
+    \item The tuned Logistic Regression achieved 92.83\% test accuracy, while the selected SVM achieved 92.07\% test accuracy.
+    \item The baseline Logistic Regression obtained 92.94\% test accuracy, so the sampled tuning configuration did not improve the held-out accuracy in this particular split, although it remained close to the baseline.
+    \item The selected SVM achieved a higher mean 5-fold cross-validation accuracy (93.61\%) than Logistic Regression (92.47\%).
+    \item Regularization controls the bias--variance trade-off in Logistic Regression. The selected L1 configuration with $C=1$ provides a balance between coefficient sparsity and model flexibility.
+    \item The SVM results demonstrate that kernel choice matters. The linear kernel gave the highest test accuracy among the four individual kernel models, while the RBF kernel gave the highest validation accuracy and was selected as the final SVM configuration.
+    \item Logistic Regression is comparatively simple and interpretable because its coefficients directly describe the direction and magnitude of feature contributions to the log-odds. SVM can model more complex boundaries, but its decision function is generally less directly interpretable.
+\end{enumerate}
+
+\section{Learning Outcomes}
+After completing this experiment, the following concepts were demonstrated:
+\begin{itemize}
+    \item Binary classification using a probabilistic linear model.
+    \item Margin-based classification using SVM.
+    \item L1/L2 regularization and the role of the inverse regularization parameter $C$.
+    \item SVM kernel selection and the role of $C$ and $\gamma$.
+    \item Hyperparameter tuning using Randomized Search.
+    \item Evaluation using accuracy, precision, recall, F1 score and ROC-AUC.
+    \item Stratified 5-fold cross-validation for measuring performance stability.
+\end{itemize}
+
+\section{Conclusion}
+The Spambase binary classification problem was solved using Logistic Regression and SVM. The preprocessing pipeline standardized the numerical features and preserved the validation procedure by fitting preprocessing steps inside the model pipeline. Randomized hyperparameter tuning was performed over the prescribed Logistic Regression and SVM parameter spaces, and all four specified SVM kernels were evaluated.
+
+On the held-out test set, the tuned Logistic Regression obtained 92.83\% accuracy and an F1 score of 90.81\%, while the selected RBF SVM obtained 92.07\% accuracy and an F1 score of 89.76\%. In 5-fold cross-validation, the selected SVM obtained a mean accuracy of 93.61\%, compared with 92.47\% for Logistic Regression. These results demonstrate that model selection and hyperparameter configuration can change the observed performance, and that both linear and kernel-based classifiers can provide strong performance on the Spambase feature representation.
+
+\section{References}
+\begin{enumerate}
+    \item Scikit-learn documentation, ``Logistic Regression.''
+    \item Scikit-learn documentation, ``Support Vector Machines.''
+    \item Scikit-learn documentation, ``Hyperparameter Optimization.''
+    \item Kaggle, ``Spambase Dataset,'' \url{https://www.kaggle.com/datasets/somesh24/spambase}.
+    \item UCI Machine Learning Repository, ``Spambase Data Set.''
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,1873 @@
+\documentclass[12pt,a4paper]{article}
+
+% ---------------------------------------------------------
+% PACKAGES
+% ---------------------------------------------------------
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{siunitx}
+\usepackage{microtype}
+
+% ---------------------------------------------------------
+% HYPERREF
+% ---------------------------------------------------------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+% ---------------------------------------------------------
+% PAGE STYLE
+% ---------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{ICS1512}
+\rhead{Machine Learning Algorithms Laboratory}
+\cfoot{\thepage}
+
+% ---------------------------------------------------------
+% CODE STYLE
+% ---------------------------------------------------------
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    numbers=left,
+    numberstyle=\tiny,
+    frame=single,
+    breaklines=true,
+    showstringspaces=false,
+    columns=fullflexible,
+    keepspaces=true
+}
+
+% ---------------------------------------------------------
+% CUSTOM COMMAND FOR FIGURES
+% ---------------------------------------------------------
+% If a figure file exists, it is displayed.
+% Otherwise, a placeholder is displayed so that the
+% document still compiles.
+\newcommand{\reportfigure}[4][0.75\linewidth]{
+\begin{figure}[H]
+    \centering
+    \IfFileExists{#2}{
+        \includegraphics[width=#1]{#2}
+    }{
+        \fbox{
+            \parbox[c][5cm][c]{0.75\linewidth}{
+                \centering
+                \textbf{Figure Placeholder}\\[0.3cm]
+                \texttt{#2}\\[0.2cm]
+                Insert the corresponding figure generated
+                from the notebook here.
+            }
+        }
+    }
+    \caption{#3}
+    \label{fig:#4}
+\end{figure}
+}
+
+% ---------------------------------------------------------
+% DOCUMENT
+% ---------------------------------------------------------
+\begin{document}
+
+\begin{tabular}{|p{4.2cm}|p{10.3cm}|}
+\hline
+\textbf{Experiment No.} & 3 \\ \hline
+
+\textbf{Experiment Title} &
+Regression Analysis using Linear and Regularized Models \\ \hline
+
+\textbf{GitHub Repository} &
+\url{https://github.com/RadeshL/Machine-Learning-Laboratory/blob/main/MLassign3.ipynb} \\ \hline
+
+\textbf{Student Name} &
+L Radesh \\ \hline
+
+\textbf{Register Number} &
+3122247001047 \\ \hline
+
+\textbf{Faculty} &
+Dr. Poreddy Ajay Kumar Reddy \\ \hline
+
+\textbf{Academic Year} &
+2026--2027 \\ \hline
+
+\textbf{Semester} &
+VI \\ \hline
+
+\textbf{Submission Date} &
+16 August, 2026 \\ \hline
+
+\end{tabular}
+
+\vspace{0.5cm}
+
+% =========================================================
+% 1. OBJECTIVE
+% =========================================================
+
+\section{Objective}
+
+The objective of this experiment is to implement and compare linear and
+regularized regression models for predicting a continuous target variable.
+The experiment uses a real-world loan application dataset in which the
+target variable is the loan amount sanctioned.
+
+The specific objectives are:
+
+\begin{enumerate}
+    \item To perform exploratory data analysis on the loan application
+    dataset.
+    
+    \item To identify and handle missing values and outliers.
+    
+    \item To preprocess numerical and categorical features using
+    appropriate transformation, scaling, and encoding techniques.
+    
+    \item To implement Linear Regression as a baseline model.
+    
+    \item To implement Ridge, Lasso, and Elastic Net regression models.
+    
+    \item To tune regularization hyperparameters using GridSearchCV and
+    RandomizedSearchCV with 5-fold cross-validation.
+    
+    \item To evaluate the regression models using Mean Absolute Error
+    (MAE), Mean Squared Error (MSE), Root Mean Squared Error (RMSE),
+    and $R^2$ score.
+    
+    \item To visualize predicted values, residuals, training and
+    validation errors, and regression coefficients.
+    
+    \item To analyze the effect of regularization on model complexity,
+    overfitting, underfitting, and the bias--variance trade-off.
+\end{enumerate}
+
+% =========================================================
+% 2. PROBLEM STATEMENT
+% =========================================================
+
+\section{Problem Statement}
+
+The problem is to predict the amount of loan that will be sanctioned to a
+customer based on information associated with a loan application.
+
+The dataset contains both numerical and categorical information related to
+customers, their financial characteristics, employment information,
+property information, credit history, loan requirements, and other
+application attributes.
+
+Let the input feature vector be represented by
+
+\[
+\mathbf{x} =
+[x_1,x_2,\ldots,x_p]^T
+\]
+
+and let the target variable be
+
+\[
+y = \text{Loan Sanction Amount (USD)}.
+\]
+
+The objective is to learn a regression function
+
+\[
+\hat{y}=f(\mathbf{x})
+\]
+
+such that the predicted loan sanction amount is as close as possible to
+the actual sanctioned amount.
+
+Four regression models are considered:
+
+\begin{enumerate}
+    \item Linear Regression
+    \item Ridge Regression
+    \item Lasso Regression
+    \item Elastic Net Regression
+\end{enumerate}
+
+The performance of the models is compared using regression error metrics
+and the effect of regularization is analyzed.
+
+% =========================================================
+% 3. DATASET DESCRIPTION
+% =========================================================
+
+\section{Dataset Description}
+
+The dataset used in this experiment is the \textit{Predict Loan Amount
+Data} dataset referenced by the laboratory manual. It is a real-world
+regression dataset containing numerical and categorical features related
+to loan applications.
+
+The target variable is \texttt{Loan Sanction Amount (USD)}.
+
+\subsection{Dataset Summary}
+
+\begin{longtable}{|p{6cm}|p{8cm}|}
+\hline
+\textbf{Property} & \textbf{Description} \\ \hline
+
+Dataset Name &
+Predict Loan Amount Data \\ \hline
+
+Dataset Source &
+Kaggle \\ \hline
+
+Initial Number of Samples &
+30,000 \\ \hline
+
+Initial Number of Features/Columns &
+24 \\ \hline
+
+Target Variable &
+Loan Sanction Amount (USD) \\ \hline
+
+Final Number of Columns &
+49 \\ \hline
+
+Number of Duplicate Rows &
+0 \\ \hline
+
+Train-Test Split &
+80\% training, 20\% testing \\ \hline
+
+Random State &
+42 \\ \hline
+
+Cross-Validation &
+5-Fold Cross-Validation \\ \hline
+
+\end{longtable}
+
+\subsection{Original Dataset Features}
+
+The original dataset contains the following attributes:
+
+\begin{itemize}
+    \item Customer ID
+    \item Name
+    \item Gender
+    \item Age
+    \item Income (USD)
+    \item Income Stability
+    \item Profession
+    \item Type of Employment
+    \item Location
+    \item Loan Amount Request (USD)
+    \item Current Loan Expenses (USD)
+    \item Expense Type 1
+    \item Expense Type 2
+    \item Dependents
+    \item Credit Score
+    \item No. of Defaults
+    \item Has Active Credit Card
+    \item Property ID
+    \item Property Age
+    \item Property Type
+    \item Property Location
+    \item Co-Applicant
+    \item Property Price
+    \item Loan Sanction Amount (USD)
+\end{itemize}
+
+\subsection{Target Variable}
+
+The prediction target is:
+
+\begin{center}
+\textbf{Loan Sanction Amount (USD)}
+\end{center}
+
+This is a continuous numerical variable, making the problem a supervised
+regression problem.
+
+% =========================================================
+% 4. EXPLORATORY DATA ANALYSIS
+% =========================================================
+
+\section{Exploratory Data Analysis}
+
+Exploratory Data Analysis (EDA) was performed before model training to
+understand the structure and quality of the dataset.
+
+The initial dataset contains 30,000 rows and 24 columns. No duplicate rows
+were detected.
+
+\subsection{Dataset Overview}
+
+The first five rows of the original dataset showed information about
+customers, income, employment, loan requirements, credit score, property
+details, and the loan amount sanctioned.
+
+The target variable is directly available in the dataset as
+\texttt{Loan Sanction Amount (USD)}.
+
+\subsection{Missing Value Analysis}
+
+The initial missing-value analysis identified missing observations in
+several columns.
+
+The main columns containing missing values were:
+
+\begin{itemize}
+    \item Gender
+    \item Income (USD)
+    \item Income Stability
+    \item Type of Employment
+    \item Current Loan Expenses (USD)
+    \item Dependents
+    \item Credit Score
+    \item Has Active Credit Card
+    \item Property Age
+    \item Property Location
+    \item Loan Sanction Amount (USD)
+\end{itemize}
+
+No column contained more than 50\% missing values. Therefore, no columns
+were removed due to excessive missing data.
+
+\reportfigure
+    {MLassign3_3_1.png}
+    {Missing-value distribution across the original dataset columns.}
+    {missing-values}
+
+\textbf{Inference:}
+
+The missing-value analysis shows that missing observations are distributed
+across several numerical and categorical attributes. No feature exceeded
+the 50\% missing-value threshold, allowing all original features to be
+retained at this stage. Numerical missing values were subsequently
+replaced using their median values, while categorical missing values were
+replaced using their mode. This prevents loss of a substantial number of
+samples while maintaining a complete dataset for subsequent processing.
+
+\subsection{Statistical and Feature Distribution Analysis}
+These visualizations were used to inspect the distributions,
+central tendencies, spread, skewness, and potential outliers in the
+numerical features.
+
+% =========================================================
+% Numerical Feature Distribution Plots - Group 1
+% =========================================================
+
+\begin{figure}[H]
+    \centering
+
+    % -------------------------------------------------
+    % Row 1
+    % -------------------------------------------------
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_3.png}
+        \caption{Age}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_4.png}
+        \caption{Income (USD)}
+    \end{subfigure}
+
+    \vspace{0.15cm}
+
+    % -------------------------------------------------
+    % Row 2
+    % -------------------------------------------------
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_5.png}
+        \caption{Loan Amount Request (USD)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_6.png}
+        \caption{Current Loan Expenses (USD)}
+    \end{subfigure}
+    \label{fig:numerical-distributions-1}
+\end{figure}
+
+
+% =========================================================
+% Numerical Feature Distribution Plots - Group 2
+% =========================================================
+
+\begin{figure}[H]
+    \centering
+
+    % -------------------------------------------------
+    % Row 1
+    % -------------------------------------------------
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_7.png}
+        \caption{Dependents}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_8.png}
+        \caption{Credit Score}
+    \end{subfigure}
+
+    \vspace{0.15cm}
+
+    % -------------------------------------------------
+    % Row 2
+    % -------------------------------------------------
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_9.png}
+        \caption{No. of Defaults}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_11.png}
+        \caption{Property Age}
+    \end{subfigure}
+    \label{fig:numerical-distributions-2}
+\end{figure}
+
+
+% =========================================================
+% Numerical Feature Distribution Plots - Group 3
+% =========================================================
+
+\begin{figure}[H]
+    \centering
+
+    % -------------------------------------------------
+    % Row 1
+    % -------------------------------------------------
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_12.png}
+        \caption{Property Type}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_13.png}
+        \caption{Co-Applicant}
+    \end{subfigure}
+
+    \vspace{0.15cm}
+
+    % -------------------------------------------------
+    % Row 2
+    % -------------------------------------------------
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_14.png}
+        \caption{Property Price}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.44\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_15.png}
+        \caption{Loan Sanction Amount (USD)}
+    \end{subfigure}
+    \label{fig:numerical-distributions-3}
+\end{figure}
+
+\textbf{Inference:}
+
+The histograms provide information about the distribution, central
+tendency, and skewness of the numerical variables, while the corresponding
+boxplots help identify potential outliers. The plots show that the
+numerical features have different scales and distribution characteristics,
+which makes feature standardization important before applying the
+regression algorithms. The boxplots also reveal observations lying away
+from the central range of some variables, motivating the use of the IQR
+method for outlier detection and treatment. These preprocessing steps help
+produce a more consistent feature representation for the subsequent
+regression models.
+
+\subsection{Categorical Feature Analysis}
+
+Count plots were generated for categorical features with a manageable
+number of categories. High-cardinality attributes such as Customer ID and
+Name were excluded from categorical visualization and encoding because
+they contain too many unique categories.
+
+% =========================================================
+% Categorical Feature Plots - Group 1
+% =========================================================
+
+\begin{figure}[H]
+    \centering
+
+    \begin{subfigure}{0.46\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_17.png}
+        \caption{Gender}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.46\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_18.png}
+        \caption{Income Stability}
+    \end{subfigure}
+
+    \vspace{0.25cm}
+
+    \begin{subfigure}{0.46\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_19.png}
+        \caption{Profession}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.46\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_20.png}
+        \caption{Type of Employment}
+    \end{subfigure}
+    \label{fig:categorical-group1}
+\end{figure}
+
+
+% =========================================================
+% Categorical Feature Plots - Group 2
+% =========================================================
+
+\begin{figure}[H]
+    \centering
+
+    \begin{subfigure}{0.46\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_21.png}
+        \caption{Location}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.46\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_22.png}
+        \caption{Expense Type 1}
+    \end{subfigure}
+
+    \vspace{0.25cm}
+
+    \begin{subfigure}{0.46\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_23.png}
+        \caption{Expense Type 2}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.46\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_24.png}
+        \caption{Has Active Credit Card}
+    \end{subfigure}
+    \label{fig:categorical-group2}
+\end{figure}
+
+
+% =========================================================
+% Categorical Feature Plots - Group 3
+% =========================================================
+
+\begin{figure}[H]
+    \centering
+
+    \begin{subfigure}{0.46\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{MLassign3_3_25.png}
+        \caption{Property Location}
+    \end{subfigure}
+    \label{fig:categorical-group3}
+\end{figure}
+
+
+\textbf{Inference:}
+
+The categorical plots show the distribution of observations across the
+different categories. Some categorical variables contain only two
+categories and are therefore suitable for binary encoding, while
+variables with multiple categories require one-hot encoding. Customer ID
+and Name were treated as high-cardinality attributes and were not
+encoded.
+
+% =========================================================
+% 5. DATA PREPROCESSING
+% =========================================================
+
+\section{Data Preprocessing}
+
+The preprocessing procedure consists of missing-value handling, outlier
+treatment, numerical transformation, categorical encoding, and removal of
+non-predictive identifier columns before model training.
+
+\subsection{Missing Value Handling}
+
+For numerical columns, missing values were replaced using the median:
+
+\[
+x_{\text{missing}} = \operatorname{median}(x).
+\]
+
+For categorical columns, missing values were replaced using the most
+frequently occurring category:
+
+\[
+x_{\text{missing}} = \operatorname{mode}(x).
+\]
+
+This procedure resulted in zero remaining missing values after
+preprocessing.
+
+\subsection{Outlier Detection}
+
+Outliers were detected using the Interquartile Range (IQR) method.
+
+The first quartile and third quartile are represented by $Q_1$ and $Q_3$.
+The IQR is
+
+\[
+IQR = Q_3-Q_1.
+\]
+
+The lower and upper limits were calculated as
+
+\[
+L = Q_1 - 1.5(IQR)
+\]
+
+and
+
+\[
+U = Q_3 + 1.5(IQR).
+\]
+
+Observations outside this interval were treated as outliers.
+
+The implementation used a threshold of 15\% to distinguish between a
+relatively small number of outliers and a more substantial proportion.
+
+For variables with a small outlier percentage, outliers were replaced by
+the median. For variables with a higher proportion of outliers, the values
+were clipped to the IQR boundaries.
+
+\subsection{Observed Outlier Treatment}
+
+\begin{longtable}{|p{5.2cm}|p{2.5cm}|p{2.5cm}|p{4.5cm}|}
+\hline
+\textbf{Feature} & \textbf{Outliers} & \textbf{Percentage} &
+\textbf{Treatment} \\ \hline
+
+Age & 0 & 0\% & No treatment \\ \hline
+
+Income (USD) & 1874 & 6.25\% &
+Median replacement \\ \hline
+
+Loan Amount Request (USD) & 752 & 2.51\% &
+Median replacement \\ \hline
+
+Current Loan Expenses (USD) & 874 & 2.91\% &
+Median replacement \\ \hline
+
+Dependents & 432 & 1.44\% &
+Median replacement \\ \hline
+
+Credit Score & 0 & 0\% &
+No treatment \\ \hline
+
+No. of Defaults & 5818 & 19.39\% &
+IQR boundary clipping \\ \hline
+
+Property ID & 0 & 0\% &
+No treatment \\ \hline
+
+Property Age & 1930 & 6.43\% &
+Median replacement \\ \hline
+
+Property Type & 0 & 0\% &
+No treatment \\ \hline
+
+Co-Applicant & 4484 & 14.95\% &
+Median replacement \\ \hline
+
+Property Price & 863 & 2.88\% &
+Median replacement \\ \hline
+
+Loan Sanction Amount (USD) & 453 & 1.51\% &
+Median replacement \\ \hline
+
+\end{longtable}
+
+\subsection{Numerical Feature Scaling}
+
+The skewness for each numerical feature was calculated.
+
+The transformation rule was:
+
+\begin{itemize}
+    \item If $|\text{skewness}| > 1$ and the feature was non-negative,
+    \texttt{log1p} transformation was considered.
+    
+    \item If $|\text{skewness}| > 1$ and negative values existed,
+    StandardScaler was used.
+    
+    \item For features with $|\text{skewness}| \leq 1$, StandardScaler was
+    applied.
+\end{itemize}
+
+In the actual dataset, the reported skewness values were within the
+reasonable range for all listed numerical features. Therefore,
+StandardScaler was applied to the numerical variables.
+
+Standardization is given by
+
+\[
+z = \frac{x-\mu}{\sigma},
+\]
+
+where $\mu$ is the feature mean and $\sigma$ is its standard deviation.
+
+\subsection{Categorical Encoding}
+
+Binary categorical features were encoded using binary mappings.
+
+For example, the notebook encoded:
+
+\begin{itemize}
+    \item Gender
+    \item Income Stability
+    \item Expense Type 1
+    \item Expense Type 2
+\end{itemize}
+
+Categorical features with more than two categories were transformed using
+one-hot encoding with the first category dropped.
+
+The following variables were one-hot encoded:
+
+\begin{itemize}
+    \item Profession
+    \item Type of Employment
+    \item Location
+    \item Has Active Credit Card
+    \item Property Location
+\end{itemize}
+
+Customer ID and Name were not encoded because they have high cardinality.
+
+\subsection{Final Dataset}
+
+After preprocessing, the dataset contained:
+
+\[
+30,000 \text{ samples} \times 49 \text{ columns}.
+\]
+
+The identifier columns Customer ID and Name were subsequently excluded
+from the model feature matrix.
+
+The final model therefore operates on numerical and encoded categorical
+predictors.
+
+% =========================================================
+% 6. TRAIN TEST SPLIT
+% =========================================================
+
+\section{Train-Test Split}
+
+The dataset was divided into training and testing subsets using an
+80:20 ratio.
+Thus, approximately 24,000 observations were used for training and
+6,000 observations were used for testing.
+
+% =========================================================
+% 7. MACHINE LEARNING ALGORITHMS
+% =========================================================
+
+\section{Machine Learning Algorithms}
+
+Four regression algorithms were implemented:
+
+\begin{enumerate}
+    \item Linear Regression
+    \item Ridge Regression
+    \item Lasso Regression
+    \item Elastic Net Regression
+\end{enumerate}
+
+\subsection{Linear Regression}
+
+Linear Regression models the target variable as a linear combination of
+the input features.
+
+The mathematical formulation is
+
+\[
+\hat{y} = \beta_0 + \beta_1x_1+\beta_2x_2+\cdots+\beta_px_p.
+\]
+
+The model estimates the coefficients by minimizing the residual sum of
+squares:
+
+\[
+\min_{\beta}
+\sum_{i=1}^{n}
+(y_i-\hat{y}_i)^2.
+\]
+
+Linear Regression provides a simple and interpretable baseline.
+
+\subsubsection{Advantages}
+
+\begin{itemize}
+    \item Simple to implement.
+    \item Computationally efficient.
+    \item Easy to interpret.
+    \item Provides a useful baseline for comparison.
+\end{itemize}
+
+\subsubsection{Limitations}
+
+\begin{itemize}
+    \item Sensitive to multicollinearity.
+    \item Can overfit when many correlated features are present.
+    \item Assumes a linear relationship between predictors and target.
+\end{itemize}
+
+\subsection{Ridge Regression}
+
+Ridge Regression introduces an $L_2$ regularization penalty.
+
+Its objective function is
+
+\[
+\min_{\beta}
+\left[
+\sum_{i=1}^{n}
+(y_i-\hat{y}_i)^2
++
+\alpha\sum_{j=1}^{p}\beta_j^2
+\right].
+\]
+
+The regularization term penalizes large coefficient magnitudes.
+
+A larger value of $\alpha$ produces stronger regularization.
+
+\subsubsection{Advantages}
+
+\begin{itemize}
+    \item Reduces coefficient magnitudes.
+    \item Helps reduce variance.
+    \item Can improve generalization in the presence of correlated
+    features.
+\end{itemize}
+
+\subsubsection{Limitations}
+
+\begin{itemize}
+    \item Does not generally force coefficients exactly to zero.
+    \item Therefore, it does not perform explicit feature selection.
+\end{itemize}
+
+\subsection{Lasso Regression}
+
+Lasso Regression uses an $L_1$ regularization penalty.
+
+Its objective function is
+
+\[
+\min_{\beta}
+\left[
+\sum_{i=1}^{n}
+(y_i-\hat{y}_i)^2
++
+\alpha\sum_{j=1}^{p}|\beta_j|
+\right].
+\]
+
+The $L_1$ penalty can drive some coefficients exactly to zero.
+
+\subsubsection{Advantages}
+
+\begin{itemize}
+    \item Performs automatic feature selection.
+    \item Produces sparse models.
+    \item Can improve interpretability.
+\end{itemize}
+
+\subsubsection{Limitations}
+
+\begin{itemize}
+    \item Can discard useful correlated features.
+    \item Performance is sensitive to the regularization parameter.
+\end{itemize}
+
+\subsection{Elastic Net Regression}
+
+Elastic Net combines $L_1$ and $L_2$ regularization.
+
+Its objective function can be represented as
+
+\[
+\min_{\beta}
+\left[
+\sum_{i=1}^{n}
+(y_i-\hat{y}_i)^2
++
+\alpha
+\left(
+\rho\sum_{j=1}^{p}|\beta_j|
++
+(1-\rho)\sum_{j=1}^{p}\beta_j^2
+\right)
+\right],
+\]
+
+where $\rho$ is the L1 ratio.
+
+When $\rho$ is close to 1, the model behaves more like Lasso, while lower
+values increase the contribution of Ridge-style regularization.
+
+\subsubsection{Advantages}
+
+\begin{itemize}
+    \item Combines feature selection and coefficient shrinkage.
+    \item Can handle correlated predictors more effectively than pure
+    Lasso.
+    \item Provides a flexible balance between L1 and L2 penalties.
+\end{itemize}
+
+\subsubsection{Limitations}
+
+\begin{itemize}
+    \item Has more hyperparameters to tune.
+    \item Can require greater computational time than basic Linear
+    Regression.
+\end{itemize}
+
+% =========================================================
+% 8. EXPERIMENTAL SETUP
+% =========================================================
+
+\section{Experimental Setup}
+
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Configuration} \\
+\midrule
+Python Version & 3.13.3 \\
+Notebook Kernel & Python 3 \\
+Machine Learning Library & Scikit-learn \\
+Data Processing & Pandas, NumPy \\
+Visualization & Matplotlib, Seaborn \\
+IDE & Jupyter Notebook \\
+Operating System & Windows \\
+Hardware & None \\
+Random State & 42 \\
+Train-Test Ratio & 80:20 \\
+Cross-Validation & 5-Fold \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4cm}
+
+% =========================================================
+% 9. HYPERPARAMETER SELECTION
+% =========================================================
+
+\section{Hyperparameter Selection}
+
+The regularized regression models were tuned using both GridSearchCV and
+RandomizedSearchCV.
+
+The search was performed using 5-fold cross-validation and
+\texttt{neg\_mean\_squared\_error} as the optimization score.
+
+\subsection{Search Spaces}
+
+\begin{longtable}{|p{4cm}|p{8cm}|}
+\hline
+\textbf{Model} & \textbf{Search Space} \\ \hline
+
+Ridge &
+$\alpha \in \{0.01,0.1,1,10,100\}$ \\ \hline
+
+Lasso &
+$\alpha \in \{0.001,0.01,0.1,1,10\}$ \\ \hline
+
+Elastic Net &
+$\alpha \in \{0.01,0.1,1,10\}$ and
+$l1\_ratio \in \{0.2,0.5,0.8\}$ \\ \hline
+
+\end{longtable}
+
+\subsection{Grid Search Results}
+
+\begin{longtable}{|p{3.5cm}|p{3.2cm}|p{3.2cm}|p{3cm}|}
+\hline
+\textbf{Model} & \textbf{Best Parameters} &
+\textbf{Test RMSE} & \textbf{Test $R^2$} \\ \hline
+
+Ridge &
+$\alpha=100$ &
+0.712176 &
+0.490816 \\ \hline
+
+Lasso &
+$\alpha=0.001$ &
+0.712226 &
+0.490744 \\ \hline
+
+Elastic Net &
+$\alpha=0.01,\ l1\_ratio=0.2$ &
+0.711781 &
+0.491379 \\ \hline
+
+\end{longtable}
+
+The best-performing tuned configuration according to the test-set
+$R^2$ was Elastic Net with
+
+\[
+\boxed{\alpha=0.01,\qquad l1\_ratio=0.2}.
+\]
+
+% =========================================================
+% 10. RESULTS
+% =========================================================
+
+\section{Results}
+
+\subsection{Baseline and Regularized Model Performance}
+
+\begin{longtable}{|p{4cm}|c|c|c|c|c|}
+\hline
+\textbf{Model} &
+\textbf{MAE} &
+\textbf{MSE} &
+\textbf{RMSE} &
+\textbf{$R^2$} &
+\textbf{Training Time (s)}
+\\ \hline
+
+Linear Regression &
+0.500173 &
+0.507597 &
+0.712458 &
+0.490412 &
+0.072413
+\\ \hline
+
+Ridge Regression &
+0.500169 &
+0.507593 &
+0.712455 &
+0.490416 &
+0.016880
+\\ \hline
+
+Lasso Regression &
+0.523793 &
+0.526109 &
+0.725333 &
+0.471827 &
+0.074277
+\\ \hline
+
+Elastic Net &
+0.513970 &
+0.513546 &
+0.716621 &
+0.484439 &
+0.091216
+\\ \hline
+
+\end{longtable}
+
+\subsection{Tuned Model Performance}
+
+\begin{longtable}{|p{4cm}|c|c|c|c|c|}
+\hline
+\textbf{Model} &
+\textbf{MAE} &
+\textbf{MSE} &
+\textbf{RMSE} &
+\textbf{$R^2$} &
+\textbf{Training Time (s)}
+\\ \hline
+
+Grid Ridge &
+0.500239 &
+0.507194 &
+0.712176 &
+0.490816 &
+0.538046
+\\ \hline
+
+Grid Lasso &
+0.499948 &
+0.507265 &
+0.712226 &
+0.490744 &
+4.881348
+\\ \hline
+
+Grid Elastic Net &
+0.500990 &
+0.506633 &
+0.711781 &
+0.491379 &
+5.851213
+\\ \hline
+
+\end{longtable}
+
+\subsection{Randomized Search Performance}
+
+\begin{longtable}{|p{4cm}|c|c|c|c|c|}
+\hline
+\textbf{Model} &
+\textbf{Best Parameters} &
+\textbf{MAE} &
+\textbf{RMSE} &
+\textbf{$R^2$} &
+\textbf{Time (s)}
+\\ \hline
+
+Randomized Ridge &
+$\alpha=100$ &
+0.500239 &
+0.712176 &
+0.490816 &
+0.512971
+\\ \hline
+
+Randomized Lasso &
+$\alpha=0.001$ &
+0.499948 &
+0.712226 &
+0.490744 &
+4.906287
+\\ \hline
+
+Randomized Elastic Net &
+$\alpha=0.01,\ l1\_ratio=0.2$ &
+0.500990 &
+0.711781 &
+0.491379 &
+5.545601
+\\ \hline
+
+\end{longtable}
+
+An important observation is that GridSearchCV and RandomizedSearchCV
+selected the same best parameters for all three regularized models.
+Consequently, both approaches produced identical test-set performance in
+this experiment.
+
+% =========================================================
+% 11. METRIC INTERPRETATION
+% =========================================================
+
+\section{Performance Metrics}
+
+\subsection{Mean Absolute Error}
+
+Mean Absolute Error is defined as
+
+\[
+MAE =
+\frac{1}{n}
+\sum_{i=1}^{n}
+|y_i-\hat{y}_i|.
+\]
+
+It measures the average absolute difference between the actual and
+predicted values.
+
+Lower MAE indicates better prediction accuracy.
+
+\subsection{Mean Squared Error}
+
+Mean Squared Error is
+
+\[
+MSE =
+\frac{1}{n}
+\sum_{i=1}^{n}
+(y_i-\hat{y}_i)^2.
+\]
+
+MSE penalizes larger errors more strongly than MAE.
+
+\subsection{Root Mean Squared Error}
+
+RMSE is
+
+\[
+RMSE = \sqrt{MSE}.
+\]
+
+It represents the square root of the average squared prediction error.
+
+\subsection{$R^2$ Score}
+
+The coefficient of determination is
+
+\[
+R^2 =
+1-
+\frac{
+\sum_{i=1}^{n}(y_i-\hat{y}_i)^2
+}{
+\sum_{i=1}^{n}(y_i-\bar{y})^2
+}.
+\]
+
+An $R^2$ value closer to 1 indicates that the model explains a greater
+proportion of the variance in the target.
+
+The best tuned model obtained an $R^2$ of approximately
+
+\[
+R^2=0.4914.
+\]
+
+This indicates that approximately 49.14\% of the variance in the
+preprocessed target is explained by the tuned Elastic Net model on the
+test set.
+
+\subsection{Important Scale Consideration}
+
+Applies StandardScaler to all numerical columns selected
+during preprocessing, including the target variable
+\texttt{Loan Sanction Amount (USD)}.
+
+Therefore, the reported MAE, MSE, and RMSE values are measured on the
+standardized target scale rather than directly in USD.
+
+Consequently, the numerical error values should not be interpreted as
+dollar amounts.
+
+For a production-quality regression experiment, the preferred approach
+would be to scale only the predictor variables and retain the original
+target scale, or alternatively inverse-transform predictions before
+reporting errors in USD.
+
+% =========================================================
+% 12. RESULT VISUALIZATION
+% =========================================================
+
+\section{Result Visualization}
+
+\begin{enumerate}
+    \item Predicted versus actual values
+    \item Residual plots
+    \item Training versus validation/test RMSE
+    \item Coefficient comparison
+\end{enumerate}
+
+\subsection{Predicted versus Actual Values}
+
+A predicted-versus-actual plot compares the model predictions with the
+true target values.
+
+The ideal relationship is represented by
+
+\[
+\hat{y}=y.
+\]
+
+Thus, points close to the diagonal line indicate accurate predictions.
+
+\reportfigure
+    {MLassign3_11_0.png}
+    {Predicted versus actual values for Linear Regression.}
+    {predicted-actual-linear}
+
+\textbf{Inference:}
+
+The predicted-versus-actual visualization shows the degree to which the
+predicted loan sanction amounts follow the actual values. Points close to
+the diagonal reference line indicate accurate predictions. The spread of
+points around the line demonstrates that the linear model does not explain
+all variation in the target. This is consistent with its test $R^2$ of
+approximately 0.49.
+
+\reportfigure
+    {MLassign3_11_1.png}
+    {Predicted versus actual values for tuned Ridge Regression.}
+    {predicted-actual-ridge}
+
+\textbf{Inference:}
+
+The tuned Ridge predictions follow a pattern similar to the baseline
+Linear Regression model. Regularization produces only a small numerical
+improvement in the test metrics. The resulting $R^2$ is approximately
+0.491, indicating a modest improvement in generalization.
+
+\reportfigure
+    {MLassign3_11_2.png}
+    {Predicted versus actual values for tuned Lasso Regression.}
+    {predicted-actual-lasso}
+
+\textbf{Inference:}
+
+The tuned Lasso model produces predictions that are broadly similar to the
+other linear models. Its test MAE is slightly lower than that of tuned
+Ridge and Elastic Net, although its RMSE and $R^2$ are marginally worse
+than those of Elastic Net. The relatively small difference between the
+models indicates that regularization does not dramatically change the
+prediction structure for this dataset.
+
+\reportfigure
+    {MLassign3_11_3.png}
+    {Predicted versus actual values for tuned Elastic Net Regression.}
+    {predicted-actual-elastic}
+
+\textbf{Inference:}
+
+Elastic Net provides the strongest overall test-set performance among the
+tuned models. It obtains the lowest RMSE and highest $R^2$ in the reported
+results. The prediction scatter therefore provides visual support for the
+numerical conclusion that Elastic Net is the preferred tuned model in this
+experiment.
+
+% ---------------------------------------------------------
+% RESIDUAL PLOTS
+% ---------------------------------------------------------
+
+\subsection{Residual Analysis}
+
+A residual is defined as
+
+\[
+e_i = y_i-\hat{y}_i.
+\]
+
+An ideal residual plot should show residuals distributed approximately
+randomly around zero without a strong systematic pattern.
+
+\reportfigure
+    {MLassign3_11_4.png}
+    {Residual plot for Linear Regression.}
+    {residual-linear}
+
+\textbf{Inference:}
+
+The residual plot is used to determine whether systematic prediction errors
+remain after fitting the regression model. Residuals distributed around
+zero indicate that the model captures the main linear relationship. Any
+visible structure or changing spread would indicate that some information
+in the data remains unexplained by the model.
+
+\reportfigure
+    {MLassign3_11_5.png}
+    {Residual plot for tuned Ridge Regression.}
+    {residual-ridge}
+
+\textbf{Inference:}
+
+The tuned Ridge residual plot provides a diagnostic view of the effect of
+$L_2$ regularization. A similar residual pattern to Linear Regression
+indicates that Ridge has not substantially changed the underlying
+prediction relationship. Its primary contribution is coefficient
+shrinkage and modest variance control.
+
+\reportfigure
+    {MLassign3_11_6.png}
+    {Residual plot for tuned Lasso Regression.}
+    {residual-lasso}
+
+\textbf{Inference:}
+
+The Lasso residual plot shows the remaining prediction errors after
+introducing $L_1$ regularization. Lasso encourages sparse coefficients,
+which can simplify the model. However, its overall test $R^2$ remains
+slightly below that of the tuned Elastic Net model.
+
+\reportfigure
+    {MLassign3_11_7.png}
+    {Residual plot for tuned Elastic Net Regression.}
+    {residual-elastic}
+
+\textbf{Inference:}
+
+The Elastic Net residual plot is used to assess whether the combined
+regularization approach leaves systematic patterns in the errors. The
+model's relatively low RMSE and highest test $R^2$ among the tuned models
+suggest that its balance between coefficient shrinkage and sparsity is
+effective for this dataset.
+
+% ---------------------------------------------------------
+% TRAINING VS VALIDATION
+% ---------------------------------------------------------
+
+\subsection{Training Error versus Validation/Test Error}
+
+Compared training RMSE and test-set RMSE for the four
+models.
+
+\reportfigure
+    {MLassign3_11_8.png}
+    {Comparison of training RMSE and validation/test RMSE across models.}
+    {training-validation}
+
+\textbf{Inference:}
+
+The training-error versus validation/test-error plot is useful for
+detecting possible overfitting and underfitting. A very large difference
+between training and validation error would indicate that the model is
+fitting the training data substantially better than unseen data. The
+regularized models provide a mechanism for controlling this gap by
+penalizing excessive coefficient magnitudes. In this implementation, the
+plot compares the training error with the held-out test error rather than
+a separately stored cross-validation validation-error curve.
+
+% ---------------------------------------------------------
+% COEFFICIENT COMPARISON
+% ---------------------------------------------------------
+
+\subsection{Coefficient Comparison}
+
+The regression coefficient for a feature represents its contribution to
+the predicted target while holding the other features constant.
+
+\reportfigure
+    {MLassign3_11_9.png}
+    {Coefficient comparison among Linear, Ridge, Lasso, and Elastic Net models.}
+    {coefficient-comparison}
+
+\textbf{Inference:}
+
+The coefficient comparison illustrates the effect of regularization on
+model parameters. Ridge reduces coefficient magnitudes through its
+$L_2$ penalty, while Lasso can drive coefficients exactly to zero because
+of its $L_1$ penalty. Elastic Net combines both effects. Therefore, the
+coefficient plot provides a direct visualization of the trade-off between
+model complexity and feature contribution.
+
+% =========================================================
+% 13. OVERFITTING AND UNDERFITTING
+% =========================================================
+
+\section{Overfitting and Underfitting Analysis}
+
+Overfitting occurs when a model learns the training data too closely and
+performs significantly worse on unseen data. Underfitting occurs when the
+model is too simple to capture the underlying relationships.
+
+\subsection{Linear Regression}
+
+Linear Regression provides the baseline performance.
+
+Its test-set performance was:
+
+\[
+MAE=0.500173
+\]
+
+\[
+RMSE=0.712458
+\]
+
+\[
+R^2=0.490412.
+\]
+
+The baseline model provides a useful reference for evaluating whether
+regularization produces improvements.
+
+\subsection{Effect of Ridge Regularization}
+
+The baseline Ridge model has nearly identical performance to Linear
+Regression.
+
+The tuned Ridge model improves the test $R^2$ from approximately
+
+\[
+0.490412
+\]
+
+to
+
+\[
+0.490816.
+\]
+
+The improvement is small, indicating that Ridge regularization does not
+dramatically change the predictive capability of the model.
+
+\subsection{Effect of Lasso Regularization}
+
+The initial Lasso model performs worse than Linear Regression:
+
+\[
+R^2=0.471827.
+\]
+
+After hyperparameter tuning, the Lasso model improves substantially:
+
+\[
+R^2=0.490744.
+\]
+
+This demonstrates the importance of selecting an appropriate
+regularization strength.
+
+\subsection{Effect of Elastic Net Regularization}
+
+The initial Elastic Net configuration achieves
+
+\[
+R^2=0.484439.
+\]
+
+After tuning, its performance improves to
+
+\[
+R^2=0.491379.
+\]
+
+Thus, hyperparameter optimization produces the strongest test-set
+performance among the evaluated models.
+
+% =========================================================
+% 14. BIAS VARIANCE
+% =========================================================
+
+\section{Bias--Variance Analysis}
+
+The bias--variance trade-off describes the relationship between model
+complexity, systematic error, and sensitivity to the training data.
+
+\subsection{Linear Regression}
+
+Linear Regression has relatively low model complexity and therefore
+provides a useful baseline with relatively controlled variance. However,
+its linear structure can introduce bias when the underlying relationship
+between the features and target is more complex.
+
+\subsection{Ridge Regression}
+
+Ridge adds an $L_2$ penalty that shrinks coefficients toward zero.
+
+Increasing $\alpha$ increases the strength of the penalty and generally
+reduces model variance at the cost of potentially increasing bias.
+
+The tuned Ridge model selected
+
+\[
+\alpha=100.
+\]
+
+This relatively large regularization value indicates that strong
+coefficient shrinkage produced the best result within the tested search
+space.
+
+\subsection{Lasso Regression}
+
+Lasso applies an $L_1$ penalty and can produce sparse coefficient vectors.
+
+The tuned Lasso model selected
+
+\[
+\alpha=0.001.
+\]
+
+The small value suggests that strong L1 regularization was not preferred
+within the tested search space.
+
+The model can nevertheless perform feature selection by shrinking some
+coefficients to zero.
+
+\subsection{Elastic Net}
+
+Elastic Net provides a compromise between L1 and L2 regularization.
+
+The selected configuration was
+
+\[
+\alpha=0.01
+\]
+
+and
+
+\[
+l1\_ratio=0.2.
+\]
+
+A value of $0.2$ indicates a stronger contribution from the L2 component
+than the L1 component. This configuration achieved the highest test
+$R^2$ among the tuned models.
+
+% =========================================================
+% 15. GRID SEARCH VS RANDOM SEARCH
+% =========================================================
+
+\section{Grid Search and Randomized Search Comparison}
+
+Both GridSearchCV and RandomizedSearchCV were implemented for Ridge,
+Lasso, and Elastic Net.
+
+The important observation is that both methods selected identical best
+parameters:
+
+\begin{longtable}{|p{3.5cm}|p{4cm}|p{4cm}|}
+\hline
+\textbf{Model} & \textbf{Grid Search} & \textbf{Randomized Search}
+\\ \hline
+
+Ridge &
+$\alpha=100$ &
+$\alpha=100$ \\ \hline
+
+Lasso &
+$\alpha=0.001$ &
+$\alpha=0.001$ \\ \hline
+
+Elastic Net &
+$\alpha=0.01,\ l1\_ratio=0.2$ &
+$\alpha=0.01,\ l1\_ratio=0.2$ \\ \hline
+
+\end{longtable}
+
+Since the randomized searches sampled the complete available search
+spaces in this particular experiment, they produced the same best
+configurations as GridSearchCV.
+
+The measured execution times were approximately:
+
+\begin{itemize}
+    \item Ridge Grid Search: 0.538 seconds
+    \item Ridge Randomized Search: 0.513 seconds
+    \item Lasso Grid Search: 4.881 seconds
+    \item Lasso Randomized Search: 4.906 seconds
+    \item Elastic Net Grid Search: 5.851 seconds
+    \item Elastic Net Randomized Search: 5.546 seconds
+\end{itemize}
+
+The small timing differences demonstrate that randomized search can have
+a computational advantage when fewer configurations are sampled, although
+the difference depends on the search space and number of iterations.
+
+% =========================================================
+% 16. DISCUSSION
+% =========================================================
+
+\section{Discussion}
+
+The experiment demonstrates the implementation and comparison of four
+linear regression approaches for predicting loan sanction amounts.
+
+The baseline Linear Regression model achieved an $R^2$ score of
+approximately 0.4904. Ridge produced an almost identical baseline result,
+while the initial Lasso and Elastic Net configurations performed slightly
+worse.
+
+Hyperparameter tuning improved the performance of all regularized models.
+The best Ridge parameter was $\alpha=100$, while Lasso selected
+$\alpha=0.001$. Elastic Net selected $\alpha=0.01$ and
+$l1\_ratio=0.2$.
+
+Among the tuned models, Elastic Net achieved the best test performance:
+
+\[
+MAE=0.500990,
+\]
+
+\[
+MSE=0.506633,
+\]
+
+\[
+RMSE=0.711781,
+\]
+
+and
+
+\[
+R^2=0.491379.
+\]
+
+The improvement over baseline Linear Regression is relatively small.
+Therefore, regularization improves the result, but it does not completely
+solve the limitations of a linear model for this dataset.
+
+\subsection{Strengths}
+
+The experiment has several strengths:
+
+\begin{itemize}
+    \item A complete preprocessing procedure was implemented.
+    \item Both numerical and categorical variables were handled.
+    \item Missing values were systematically imputed.
+    \item Outliers were explicitly detected and treated.
+    \item Four regression algorithms were compared.
+    \item Both GridSearchCV and RandomizedSearchCV were implemented.
+    \item Five-fold cross-validation was used for hyperparameter selection.
+    \item Multiple regression metrics were reported.
+    \item Model predictions, residuals, errors, and coefficients were
+    visualized.
+\end{itemize}
+
+\subsection{Limitations and Improvements}
+
+All four models considered are linear regression models. If the underlying
+relationship between loan characteristics and sanctioned amount is
+nonlinear, models such as Random Forest Regression, Gradient Boosting,
+XGBoost, or other nonlinear approaches could potentially provide better
+performance.
+
+% =========================================================
+% 17. OBSERVATIONS
+% =========================================================
+
+\section{Observations}
+
+The major observations from the experiment are:
+
+\begin{enumerate}
+    \item The dataset contains 30,000 loan application records and
+    multiple numerical and categorical attributes.
+    
+    \item Missing values were present in several columns, but no column
+    exceeded the 50\% missing-value threshold.
+    
+    \item Numerical missing values were handled using median imputation,
+    while categorical missing values were handled using mode imputation.
+    
+    \item Outliers were identified using the IQR method.
+    
+    \item Numerical features were standardized using StandardScaler.
+    
+    \item Binary categorical variables were binary encoded, while
+    multi-category variables were one-hot encoded.
+    
+    \item The final preprocessed dataset contained 49 columns.
+    
+    \item Linear Regression achieved an $R^2$ score of approximately
+    0.4904.
+    
+    \item The initial Lasso and Elastic Net models performed worse than
+    the baseline Linear Regression model.
+    
+    \item Hyperparameter tuning improved the performance of the
+    regularized models.
+    
+    \item GridSearchCV and RandomizedSearchCV selected identical best
+    hyperparameters for all three regularized models.
+    
+    \item Elastic Net achieved the highest test $R^2$ of approximately
+    0.4914.
+    
+    \item Elastic Net also achieved the lowest test RMSE among the tuned
+    models.
+    
+    \item The improvement from regularization was relatively small,
+    suggesting that the predictive capability of the tested linear
+    models is limited by the feature-target relationship.
+\end{enumerate}
+
+% =========================================================
+% 18. CONCLUSION
+% =========================================================
+
+\section{Conclusion}
+
+This experiment implemented Linear Regression, Ridge Regression, Lasso
+Regression, and Elastic Net Regression for predicting loan sanction
+amounts using a real-world loan application dataset.
+
+The dataset was first explored and preprocessed through missing-value
+imputation, IQR-based outlier handling, numerical standardization, and
+categorical encoding. The resulting dataset contained 30,000 samples and
+49 processed columns, from which the identifier columns Customer ID and
+Name were excluded before model training.
+
+Linear Regression was used as the baseline model. Ridge, Lasso, and
+Elastic Net were subsequently trained to investigate the effect of
+regularization.
+
+Hyperparameter tuning was performed using both GridSearchCV and
+RandomizedSearchCV with five-fold cross-validation. The best parameters
+were $\alpha=100$ for Ridge, $\alpha=0.001$ for Lasso, and
+$\alpha=0.01$, $l1\_ratio=0.2$ for Elastic Net.
+
+The tuned Elastic Net model achieved the best test-set performance with
+
+\[
+MAE=0.500990,
+\]
+
+\[
+MSE=0.506633,
+\]
+
+\[
+RMSE=0.711781,
+\]
+
+and
+
+\[
+R^2=0.491379.
+\]
+
+Thus, Elastic Net is selected as the best model among the evaluated
+configurations.
+
+However, the improvement over the baseline Linear Regression model is
+small. This indicates that regularization provides only a modest benefit
+for this particular feature representation. More advanced nonlinear
+regression methods, improved feature engineering, and a leakage-free
+preprocessing pipeline could be explored to improve predictive
+performance.
+
+Finally, the experiment demonstrates the importance of model
+regularization, hyperparameter tuning, cross-validation, and error
+analysis when developing regression models for real-world prediction
+tasks.
+
+% =========================================================
+% 19. REFERENCES
+% =========================================================
+
+\section{References}
+
+\begin{enumerate}[label={[}\arabic*{]}]
+
+    \item F. Pedregosa et al.,
+    ``Scikit-learn: Machine Learning in Python,''
+    \textit{Journal of Machine Learning Research},
+    vol. 12, pp. 2825--2830, 2011.
+
+    \item Scikit-learn Documentation,
+    ``Linear Models.''
+
+    \item Scikit-learn Documentation,
+    ``Tuning the Hyper-Parameters of an Estimator.''
+
+    \item Kaggle,
+    ``Predict Loan Amount Data,'' dataset used for regression analysis.
+
+\end{enumerate}
+
+\end{document}

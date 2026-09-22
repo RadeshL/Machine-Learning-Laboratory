@@ -1,0 +1,649 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[a4paper,margin=1in,headheight=15pt]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{url}
+\usepackage{xurl}
+\usepackage{hyperref}
+
+\Urlmuskip=0mu plus 2mu\relax
+\sloppy
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{ICS1512}
+\rhead{Machine Learning Laboratory}
+\cfoot{\thepage}
+
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{keywordcolor}{RGB}{0,0,180}
+\definecolor{commentcolor}{RGB}{80,120,80}
+\definecolor{stringcolor}{RGB}{163,21,21}
+
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  breaklines=true,
+  showstringspaces=false,
+  backgroundcolor=\color{codebg},
+  keywordstyle=\color{keywordcolor}\bfseries,
+  commentstyle=\color{commentcolor}\itshape,
+  stringstyle=\color{stringcolor},
+  tabsize=4,
+  captionpos=b
+}
+
+\begin{document}
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  COVER TABLE
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{center}
+  \textbf{\large Sri Sivasubramaniya Nadar College of Engineering, Chennai}\\[4pt]
+  \textit{An Autonomous Institution Affiliated to Anna University}\\[12pt]
+\end{center}
+
+\begin{tabular}{|p{4.5cm}|p{10.5cm}|}
+\hline
+\textbf{Experiment No.}       & 6 \\ \hline
+\textbf{Experiment Title}     & Bagging, Boosting, and Stacked Ensemble Models%
+  \footnote{\textbf{GitHub Repository:} \url{https://github.com/username/repository}} \\ \hline
+\textbf{Degree \& Branch}     & B.E. Computer Science \& Engineering \\ \hline
+\textbf{Semester}             & V \\ \hline
+\textbf{Subject Code \& Name} & ICS1512 -- Machine Learning Laboratory \\ \hline
+\textbf{Academic Year}        & 2026--2027 (Odd Semester) \\ \hline
+\textbf{Batch}                & 2024--2029 \\ \hline
+\textbf{Student Name}         & L.Radesh \\ \hline
+\textbf{Register Number}      & 3122247001047 \\ \hline
+\textbf{Faculty}              & Dr. Poreddy Ajay Kumar Reddy \\ \hline
+\textbf{Submission Date}      & 31-08-2026 \\ \hline
+\textbf{Github Repo}      & \url{ https://github.com/RadeshL/Machine-Learning-Laboratory/blob/main/MLassign6.ipynb}\\ \hline
+\end{tabular}
+\vspace{1cm}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Objective}
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{itemize}[noitemsep]
+  \item To understand ensemble learning strategies: Bagging, Boosting, and Stacking.
+  \item To implement Bagging and Boosting (AdaBoost, Gradient Boosting) classifiers.
+  \item To build a Stacked Ensemble model using multiple heterogeneous base learners.
+  \item To compare ensemble models in terms of accuracy, stability, and generalisation.
+  \item To analyse the effect of ensemble methods on bias and variance.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Problem Statement}
+% ─────────────────────────────────────────────────────────────────────────────
+Given 30 real-valued features derived from digitised fine-needle aspirate (FNA) images of breast
+masses, the objective is to classify each sample as \textbf{Malignant} (class 0) or \textbf{Benign}
+(class 1) using three distinct ensemble strategies. The input feature vector
+$\mathbf{x} \in \mathbb{R}^{30}$ is processed by Bagging, Boosting, and Stacking classifiers whose
+hyperparameters are tuned via 5-fold stratified cross-validation. Models are evaluated on a held-out
+20\% test split to determine which ensemble strategy achieves the best diagnostic performance while
+preserving generalisability.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Dataset Description}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{longtable}{|p{5.5cm}|p{9cm}|}
+\hline
+\textbf{Attribute}      & \textbf{Detail} \\ \hline
+Dataset Name            & Wisconsin Diagnostic Breast Cancer (WDBC) \\ \hline
+Dataset Source          & UCI Machine Learning Repository (\url{https://archive.ics.uci.edu}) \\ \hline
+Number of Samples       & 569 \\ \hline
+Number of Features      & 30 numerical attributes (mean, SE, worst of 10 nucleus measurements) \\ \hline
+Number of Classes       & 2 --- Malignant (M): 212, Benign (B): 357 \\ \hline
+Missing Values          & None \\ \hline
+Train--Test Split       & 80\% training (455 samples) / 20\% test (114 samples), stratified \\ \hline
+Label Encoding          & Malignant $\rightarrow$ 0, Benign $\rightarrow$ 1 \\ \hline
+\end{longtable}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Exploratory Data Analysis}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection*{4.1 Class Distribution}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.52\linewidth]{e7_fig1_class}
+\caption{Class distribution of the WDBC dataset.
+  Benign samples (357) outnumber malignant samples (212) at a ratio of approximately 1.68:1.}
+\end{figure}
+
+\textbf{Inference:}
+The dataset exhibits a moderate class imbalance (Benign:Malignant $\approx$ 1.68:1), which
+motivates the use of stratified sampling throughout training and cross-validation. Since no
+resampling technique is applied, models are implicitly evaluated on a realistic clinical distribution.
+The minority malignant class is clinically critical --- false negatives (missed malignancies) carry
+a higher cost than false positives, making recall for class 0 a key diagnostic metric.
+
+\subsection*{4.2 Feature Correlation Analysis}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{e7_fig2_corr}
+\caption{Pairwise Pearson correlation heatmap for the 12 highest-variance features.
+  Saturated red/blue denotes strong positive/negative correlation.}
+\end{figure}
+
+\textbf{Inference:}
+Strong positive correlations (|r| $>$ 0.9) exist among the \textit{radius}, \textit{perimeter},
+and \textit{area} feature groups, which are geometrically linked ($A \approx \pi r^2$).
+This multicollinearity has limited effect on tree-based ensembles (which split greedily on
+individual features), but it benefits the Stacking model by allowing diverse base learners
+(SVM, Decision Tree) to exploit different aspects of the feature space. Concavity-related
+features carry the strongest discriminative signal between malignant and benign classes.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Data Preprocessing}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Missing values:} None present; no imputation required.
+  \item \textbf{Label encoding:} Categorical labels M/B are encoded as integers
+        (M$\rightarrow$0, B$\rightarrow$1) by \texttt{sklearn}'s built-in loader.
+  \item \textbf{Feature scaling:} Applied only inside the Stacking pipeline for the SVM base
+        learner via \texttt{StandardScaler} wrapped in a \texttt{Pipeline}.
+        Bagging, AdaBoost, and Gradient Boosting are scale-invariant.
+  \item \textbf{Train--test split:} 80--20 stratified split with \texttt{random\_state=42}.
+  \item \textbf{Feature engineering:} No derived features; all 30 raw attributes used directly.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Machine Learning Algorithms}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection*{6.1 Bagging (Bootstrap Aggregation)}
+
+\textbf{Working Principle:}
+Bagging trains $T$ independent base classifiers, each on a bootstrapped resample of the training
+data (drawn with replacement). Predictions are aggregated by majority vote.
+
+\textbf{Mathematical Formulation:}
+Each bootstrap sample $\mathcal{D}_t \sim \mathcal{D}$ with $|\mathcal{D}_t| = N$.
+The ensemble prediction is:
+\[
+\hat{y}_{\text{bag}} = \underset{k}{\arg\max} \sum_{t=1}^{T} \mathbf{1}[h_t(\mathbf{x}) = k]
+\]
+Bagging reduces generalisation error primarily by reducing \textbf{variance}:
+\[
+\text{Var}[\hat{y}_{\text{bag}}] \approx \rho \sigma^2 + \frac{1-\rho}{T} \sigma^2
+\]
+where $\rho$ is the inter-tree correlation and $\sigma^2$ is the single-tree variance.
+
+\textbf{Advantages:} Robust to overfitting; parallelisable; stable predictions.\\
+\textbf{Limitations:} Limited improvement on low-variance models; does not reduce bias.
+
+\subsection*{6.2 Boosting}
+
+\textbf{Working Principle:}
+Boosting trains models sequentially, each focusing on the misclassified samples of the previous model.
+
+\paragraph{AdaBoost:}
+Each weak learner $h_t$ is trained on a reweighted distribution $\mathcal{D}_t$.
+After training, the learner receives weight $\alpha_t$ inversely proportional to its error $\epsilon_t$:
+\[
+\alpha_t = \frac{1}{2} \ln\!\left(\frac{1 - \epsilon_t}{\epsilon_t}\right)
+\]
+Sample weights are updated: $w_{t+1}(i) \propto w_t(i) \exp(-\alpha_t y_i h_t(\mathbf{x}_i))$.
+The final prediction is:
+\[
+H(\mathbf{x}) = \text{sign}\!\left(\sum_{t=1}^{T} \alpha_t h_t(\mathbf{x})\right)
+\]
+
+\paragraph{Gradient Boosting:}
+Each new tree $h_t$ is fit to the negative gradient of the loss function with respect to the
+current ensemble prediction. For log-loss:
+\[
+F_t(\mathbf{x}) = F_{t-1}(\mathbf{x}) + \eta \cdot h_t(\mathbf{x})
+\]
+where $\eta$ is the learning rate. This reduces \textbf{bias} by iteratively correcting residuals.
+
+\textbf{Advantages:} High accuracy; flexible loss functions; handles heterogeneous data.\\
+\textbf{Limitations:} Prone to overfitting; sensitive to noisy data; sequential training is slow.
+
+\subsection*{6.3 Stacked Ensemble (Stacking)}
+
+\textbf{Working Principle:}
+Stacking trains multiple heterogeneous base learners on the training data, then trains a meta-learner
+on their out-of-fold predictions to learn an optimal combination.
+
+\textbf{Mathematical Formulation:}
+Let $\{h_1, h_2, \ldots, h_K\}$ be base learners. For each sample $\mathbf{x}_i$, a meta-feature
+vector is constructed:
+\[
+\tilde{\mathbf{x}}_i = [h_1(\mathbf{x}_i),\; h_2(\mathbf{x}_i),\; \ldots,\; h_K(\mathbf{x}_i)]
+\]
+The meta-learner $g$ (Logistic Regression here) is trained on $\tilde{\mathbf{X}}$:
+\[
+\hat{y} = g(\tilde{\mathbf{x}}) = \sigma\!\left(\mathbf{w}^\top \tilde{\mathbf{x}} + b\right)
+\]
+
+\textbf{Base Models:} SVM (with StandardScaler), Decision Tree ($\texttt{max\_depth}=5$).\\
+\textbf{Meta-Learner:} Logistic Regression (\texttt{max\_iter=1000}).
+
+\textbf{Advantages:} Exploits complementary strengths of diverse models; often achieves top accuracy.\\
+\textbf{Limitations:} Computationally expensive; risk of data leakage if not handled with CV.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Experimental Setup}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tabular}{ll}
+\toprule
+\textbf{Component}        & \textbf{Detail} \\
+\midrule
+Python Version            & 3.12 \\
+Scikit-learn Version      & 1.8.0 \\
+NumPy / Pandas            & 1.26.x / 2.2.x \\
+Matplotlib / Seaborn      & 3.9.x / 0.13.x \\
+IDE                       & Jupyter Notebook / VS Code \\
+Operating System          & Ubuntu 22.04 LTS \\
+Hardware                  & CPU: Intel Core i5 (8-core), RAM: 16 GB \\
+\bottomrule
+\end{tabular}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Hyperparameter Selection via 5-Fold Cross-Validation}
+% ─────────────────────────────────────────────────────────────────────────────
+
+All hyperparameters were selected by exhaustive grid search evaluated under
+\texttt{StratifiedKFold(n\_splits=5, shuffle=True, random\_state=42)}.
+The configuration maximising mean CV accuracy was retained for final evaluation.
+
+\subsection*{8.1 Bagging — Search Space}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Hyperparameter} & \textbf{Candidates} \\
+\midrule
+\texttt{n\_estimators}   & 25, 50, 100, 200 \\
+\texttt{max\_samples}    & 0.7, 0.9, 1.0 \\
+\texttt{max\_features}   & 0.7, 1.0 \\
+Base estimator           & \texttt{DecisionTreeClassifier} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Table 1 — Bagging Hyperparameter Evaluation (Top 8 by CV Accuracy)}
+
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{n\_estimators} & \textbf{max\_samples} & \textbf{max\_features}
+  & \textbf{Avg CV Acc (\%)} & \textbf{Avg CV F1} \\
+\midrule
+25  & 0.9 & 1.0 & 96.26 & 0.9702 \\
+50  & 0.9 & 1.0 & 96.26 & 0.9701 \\
+100 & 0.9 & 0.7 & 96.04 & 0.9683 \\
+200 & 0.7 & 0.7 & 96.04 & 0.9683 \\
+25  & 0.9 & 0.7 & 95.82 & 0.9667 \\
+100 & 1.0 & 1.0 & 95.60 & 0.9647 \\
+200 & 0.9 & 1.0 & 95.60 & 0.9647 \\
+50  & 0.7 & 1.0 & 95.38 & 0.9631 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Selected Bagging Configuration:}
+\texttt{n\_estimators=50, max\_samples=0.9, max\_features=1.0}
+(Best avg CV Accuracy: \textbf{96.26\%})
+
+\subsection*{8.2 Boosting — Search Space}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Model}        & \textbf{Hyperparameter}  & \textbf{Candidates} \\
+\midrule
+\multirow{2}{*}{AdaBoost} & \texttt{n\_estimators} & 50, 100, 200 \\
+                           & \texttt{learning\_rate}& 0.1, 0.5, 1.0 \\
+\midrule
+\multirow{3}{*}{Gradient Boosting} & \texttt{n\_estimators} & 50, 100, 150 \\
+                                   & \texttt{learning\_rate}& 0.05, 0.1, 0.2 \\
+                                   & \texttt{max\_depth}    & 2, 3 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Table 2 — Boosting Hyperparameter Evaluation (Top 8 — AdaBoost \& Gradient Boosting)}
+
+\textbf{AdaBoost:}
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+\textbf{n\_estimators} & \textbf{learning\_rate}
+  & \textbf{Avg CV Acc (\%)} & \textbf{Avg CV F1} \\
+\midrule
+100 & 1.0 & 98.02 & 0.9844 \\
+200 & 1.0 & 97.80 & 0.9826 \\
+100 & 0.5 & 97.36 & 0.9792 \\
+200 & 0.1 & 97.14 & 0.9773 \\
+200 & 0.5 & 96.92 & 0.9758 \\
+50  & 1.0 & 96.70 & 0.9738 \\
+50  & 0.5 & 95.60 & 0.9647 \\
+50  & 0.1 & 94.51 & 0.9553 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Selected AdaBoost Configuration:}
+\texttt{n\_estimators=100, learning\_rate=1.0}
+(Best avg CV Accuracy: \textbf{98.02\%})
+
+\vspace{8pt}
+\textbf{Gradient Boosting:}
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{n\_estimators} & \textbf{learning\_rate} & \textbf{max\_depth}
+  & \textbf{Avg CV Acc (\%)} & \textbf{Avg CV F1} \\
+\midrule
+150 & 0.2 & 2 & 97.36 & 0.9789 \\
+100 & 0.2 & 2 & 96.92 & 0.9755 \\
+150 & 0.2 & 3 & 96.70 & 0.9738 \\
+100 & 0.2 & 3 & 96.48 & 0.9719 \\
+150 & 0.1 & 2 & 96.48 & 0.9719 \\
+100 & 0.1 & 2 & 96.26 & 0.9702 \\
+50  & 0.2 & 2 & 96.26 & 0.9702 \\
+150 & 0.1 & 3 & 95.82 & 0.9667 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Selected Gradient Boosting Configuration:}
+\texttt{n\_estimators=150, learning\_rate=0.2, max\_depth=2}
+(Best avg CV Accuracy: \textbf{97.36\%})
+
+\subsection*{8.3 Stacked Ensemble — Configurations Evaluated}
+
+\subsection*{Table 3 — Stacked Ensemble Hyperparameter Evaluation}
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Base Models}     & \textbf{Meta-Learner}
+  & \textbf{Avg CV Acc (\%)} & \textbf{Avg CV F1} \\
+\midrule
+SVM + DT        & Logistic Regression & 97.14 & 0.9770 \\
+SVM + NB + DT   & Logistic Regression & 96.70 & 0.9737 \\
+SVM + NB        & Logistic Regression & 96.26 & 0.9701 \\
+NB + DT         & Logistic Regression & 93.63 & 0.9500 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Selected Stacking Configuration:}
+Base: SVM (+ StandardScaler) + Decision Tree; Meta-Learner: Logistic Regression
+(Best avg CV Accuracy: \textbf{97.14\%})
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{5-Fold Cross-Validation Fold-by-Fold Comparison}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Model} & \textbf{Fold 1} & \textbf{Fold 2} & \textbf{Fold 3}
+               & \textbf{Fold 4} & \textbf{Fold 5} & \textbf{Average} \\
+               & (\%) & (\%) & (\%) & (\%) & (\%) & (\%) \\
+\midrule
+Bagging           & 96.70 & 95.60 & 94.51 & 95.60 & 98.90 & 96.26 \\
+AdaBoost          & 98.90 & 100.00 & 94.51 & 97.80 & 98.90 & 98.02 \\
+Gradient Boosting & 95.60 & 100.00 & 94.51 & 97.80 & 98.90 & 97.36 \\
+Stacking          & 96.70 & 96.70  & 95.60 & 97.80 & 98.90 & 97.14 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{e7_fig3_cv}
+\caption{Per-fold cross-validation accuracy for all four ensemble models.
+  AdaBoost achieves the highest mean CV accuracy (98.02\%), but shows higher fold-to-fold variability
+  (range: 5.49 pp) compared to Stacking (range: 3.30 pp).}
+\end{figure}
+
+\textbf{Inference:}
+AdaBoost achieves the best mean CV accuracy (98.02\%) and achieves perfect accuracy on Fold 2
+(100\%), demonstrating the power of sequential bias correction. However, it also records the
+greatest variability across folds (range: 5.49 pp vs. Stacking's 3.30 pp), suggesting that its
+sequential reweighting can overfit to fold-specific noise. Gradient Boosting balances high average
+accuracy (97.36\%) with more consistent fold behaviour. Stacking (97.14\%) is the most stable,
+confirming that heterogeneous base learners provide complementary error coverage across folds.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Results}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection*{Table 4 — Performance Comparison of Ensemble Models (Test Set, 80--20 Split)}
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model}        & \textbf{Accuracy (\%)} & \textbf{Precision (\%)}
+  & \textbf{Recall (\%)} & \textbf{F1-Score (\%)} \\
+\midrule
+Bagging           & 94.74 & 95.83 & 95.83 & 95.83 \\
+AdaBoost          & 95.61 & 94.67 & 98.61 & 96.60 \\
+Gradient Boosting & 95.61 & 94.67 & 98.61 & 96.60 \\
+\textbf{Stacking} & \textbf{96.49} & \textbf{97.22} & \textbf{97.22} & \textbf{97.22} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+\textbf{Model}        & \textbf{AUC-ROC} \\
+\midrule
+Bagging           & 0.9926 \\
+AdaBoost          & 0.9818 \\
+Gradient Boosting & 0.9914 \\
+\textbf{Stacking} & \textbf{0.9944} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Stacking achieves the highest accuracy (96.49\%), F1-score (97.22\%), and AUC-ROC (0.9944) on the
+test set, confirming that heterogeneous base-learner diversity translates to the best held-out
+performance. AdaBoost and Gradient Boosting achieve equal test accuracy (95.61\%) with high recall
+(98.61\%), while Bagging produces the most balanced Precision--Recall trade-off (both at 95.83\%).
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Result Visualisations}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection*{10.1 Confusion Matrix — Bagging}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.52\linewidth]{e7_fig4_bag_cm}
+\caption{Confusion matrix for the Bagging classifier (DecisionTree base, 50 estimators,
+  max\_samples=0.9) on the 114-sample test set.}
+\end{figure}
+
+\textbf{Inference:}
+Bagging correctly classifies the majority of both classes with balanced precision and recall
+(both 95.83\%). The symmetric confusion matrix confirms that bootstrap aggregation of decision
+trees effectively reduces their individual high-variance errors.
+However, 6 errors remain: 3 false negatives and 3 false positives, indicating
+residual variance that sequential methods address more aggressively.
+
+\subsection*{10.2 Confusion Matrix — AdaBoost}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.52\linewidth]{e7_fig5_ada_cm}
+\caption{Confusion matrix for the AdaBoost classifier (100 stumps, learning rate=1.0)
+  on the test set.}
+\end{figure}
+
+\textbf{Inference:}
+AdaBoost reduces false negatives (missed malignancies) compared to Bagging by concentrating
+weight on hard-to-classify boundary samples through its sequential reweighting mechanism.
+A recall of 98.61\% for the benign class is achieved, though precision drops slightly to 94.67\%
+due to 3 false positives. In clinical terms, AdaBoost's high recall for malignant detection
+makes it well-suited for screening applications where false negatives are costly.
+
+\subsection*{10.3 Confusion Matrix — Gradient Boosting}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.52\linewidth]{e7_fig6_gb_cm}
+\caption{Confusion matrix for the Gradient Boosting classifier
+  (150 trees, lr=0.2, max\_depth=2) on the test set.}
+\end{figure}
+
+\textbf{Inference:}
+Gradient Boosting produces an identical test accuracy and confusion matrix to AdaBoost (95.61\%),
+but achieves this through gradient descent on residuals rather than sample reweighting.
+The shallow tree depth (\texttt{max\_depth=2}) acts as a strong regulariser, preventing individual
+trees from memorising training noise and maintaining the low bias of the boosting chain
+without incurring high variance. The identical confusion matrix to AdaBoost confirms that both
+boosting variants converge on similar decision boundaries for this dataset.
+
+\subsection*{10.4 Confusion Matrix — Stacking}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.52\linewidth]{e7_fig7_stk_cm}
+\caption{Confusion matrix for the Stacking classifier (SVM + DT base; Logistic Regression meta)
+  on the test set.}
+\end{figure}
+
+\textbf{Inference:}
+Stacking achieves the lowest total error (4 misclassifications vs.\ 6 for Bagging, 5 for Boosting)
+with equal precision and recall of 97.22\%. The SVM base learner captures large-margin linear
+boundaries while the Decision Tree captures non-linear splits; the Logistic Regression meta-learner
+learns to weight their complementary predictions optimally. This heterogeneous diversity is the key
+mechanism behind Stacking's superior test performance.
+
+\subsection*{10.5 ROC Curve Comparison}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.68\linewidth]{e7_fig8_roc}
+\caption{ROC curves for all four ensemble classifiers.
+  AUC values are shown in the legend.}
+\end{figure}
+
+\textbf{Inference:}
+Stacking achieves the highest AUC-ROC (0.9944), confirming superior probability calibration
+across all classification thresholds. Bagging's AUC of 0.9926 is notably high despite a lower
+raw accuracy (94.74\%), indicating well-calibrated probability estimates from averaging decision
+tree leaf posteriors. AdaBoost's AUC of 0.9818 is lower than expected given its high CV accuracy,
+reflecting slight overconfidence in its probability estimates (AdaBoost is not natively
+probability-calibrated). Gradient Boosting (0.9914) sits between Bagging and Stacking,
+balancing accuracy and probability calibration.
+
+\subsection*{10.6 Test-Set Metrics Comparison}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{e7_fig9_metrics}
+\caption{Side-by-side comparison of Accuracy, Precision, Recall, and F1-Score
+  for all ensemble models on the test set.}
+\end{figure}
+
+\textbf{Inference:}
+Stacking consistently leads across all four metrics. Bagging's precision equals its recall (95.83\%),
+reflecting the symmetric aggregation of identically structured trees. AdaBoost and Gradient Boosting
+both achieve 98.61\% recall --- the highest among all models --- at the cost of slightly lower
+precision (94.67\%), reflecting boosting's focus on correcting false negatives.
+The plot confirms that no single ensemble strategy dominates on every metric simultaneously:
+the choice depends on the clinical trade-off between precision and recall.
+
+\subsection*{10.7 Gradient Boosting Feature Importances}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{e7_fig10_fi}
+\caption{Top 15 Gradient Boosting feature importances (mean decrease in impurity).
+  Darker green bars indicate features exceeding the 0.07 importance threshold.}
+\end{figure}
+
+\textbf{Inference:}
+The most discriminative features are \textit{worst concave points} (0.1306),
+\textit{worst area} (0.1186), and \textit{worst radius} (0.1071) --- all from the ``worst''
+measurement group describing the most morphologically extreme cell nucleus in each image.
+This aligns with the clinical understanding that malignant cells exhibit enlarged and
+irregularly shaped nuclei detectable in FNA images. The top 10 features account for
+approximately 84\% of total predictive weight, confirming significant feature redundancy
+across the 30-attribute space.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Three distinct ensemble strategies --- Bagging, Boosting (AdaBoost and Gradient Boosting), and
+Stacking --- were implemented on the Wisconsin Diagnostic Breast Cancer dataset and tuned via
+5-fold stratified cross-validation. The optimal Bagging classifier
+(\texttt{n\_estimators=50, max\_samples=0.9}) achieved 96.26\% mean CV accuracy and 94.74\% test
+accuracy. AdaBoost (\texttt{n\_estimators=100, learning\_rate=1.0}) achieved the highest mean CV
+accuracy (98.02\%) and recall (98.61\%), while Gradient Boosting (\texttt{n\_estimators=150,
+lr=0.2, max\_depth=2}) matched AdaBoost's test accuracy with a better AUC (0.9914 vs.\ 0.9818).
+Stacking (SVM + DT base; Logistic Regression meta) achieved the best overall test performance
+(accuracy 96.49\%, F1 97.22\%, AUC 0.9944), confirming that heterogeneous base-learner
+diversity and a learned combination function are the most powerful ensemble strategy for this
+classification task.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{References}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{enumerate}[label={[\arabic*]},leftmargin=*]
+
+\item F. Pedregosa \textit{et al.}, ``Scikit-learn: Machine Learning in Python,''
+  \textit{Journal of Machine Learning Research}, vol.\ 12, pp.\ 2825--2830, 2011.
+  [Online]. Available: \url{https://scikit-learn.org}
+
+\item L. Breiman, ``Bagging Predictors,'' \textit{Machine Learning}, vol.\ 24, no.\ 2,
+  pp.\ 123--140, Aug. 1996.
+  doi: \href{https://doi.org/10.1007/BF00058655}{10.1007/BF00058655}
+
+\item Y. Freund and R. E. Schapire, ``A Decision-Theoretic Generalization of On-Line Learning
+  and an Application to Boosting,'' \textit{Journal of Computer and System Sciences},
+  vol.\ 55, no.\ 1, pp.\ 119--139, Aug. 1997.
+  doi: \href{https://doi.org/10.1006/jcss.1997.1504}{10.1006/jcss.1997.1504}
+
+\item J. H. Friedman, ``Greedy Function Approximation: A Gradient Boosting Machine,''
+  \textit{Annals of Statistics}, vol.\ 29, no.\ 5, pp.\ 1189--1232, 2001.
+  doi: \href{https://doi.org/10.1214/aos/1013203451}{10.1214/aos/1013203451}
+
+\item D. H. Wolpert, ``Stacked Generalization,'' \textit{Neural Networks},
+  vol.\ 5, no.\ 2, pp.\ 241--259, 1992.
+  doi: \href{https://doi.org/10.1016/S0893-6080(05)80023-1}{10.1016/S0893-6080(05)80023-1}
+
+\item D. Dua and C. Graff, ``UCI Machine Learning Repository,''
+  University of California, Irvine, 2019.
+  [Online]. Available: \url{https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic)}
+
+\item Scikit-learn Documentation, ``Ensemble Methods,'' 2024.
+  [Online]. Available: \url{https://scikit-learn.org/stable/modules/ensemble.html}
+
+\end{enumerate}
+
+\end{document}

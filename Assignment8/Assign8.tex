@@ -1,0 +1,34 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{graphicx,booktabs,amsmath,amssymb,float,hyperref,xcolor,enumitem,fancyhdr,longtable,array}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\pagestyle{fancy}\fancyhf{}\lhead{ICS1512}\rhead{Machine Learning Algorithms Laboratory}\cfoot{\thepage}
+\begin{document}
+\begin{tabular}{|p{4cm}|p{11cm}|}\hline Experiment No. & 8 \\ \hline Experiment Title & Clustering Human Activity Recognition Data using K-Means, DBSCAN, and Hierarchical Clustering \\ \hline Student Name & L.Radesh\\ \hline Register Number & 3122247001047\\ \hline Faculty & Dr. Poreddy Ajay Kumar Reddy \\ \hline Submission Date & 20 September 2026 \\ \hline Github repo & \url{https://github.com/RadeshL/Machine-Learning-Laboratory/blob/main/MLassign8.ipynb}\\ \hline \end{tabular}
+\section{Objective} To implement and compare K-Means, DBSCAN and hierarchical agglomerative clustering on the supplied Human Activity Recognition data.
+\section{Dataset and Preprocessing} The uploaded train.csv contains 7352 observations and test.csv contains 2947 observations. Each contains 561 sensor-derived predictors together with subject and activity fields. The files were combined to obtain 10299 observations. Activity labels were retained only for external evaluation and were not supplied to the clustering algorithms. Numerical predictors were standardized. A 30-component PCA representation was used for clustering and two components for visualization.
+\begin{table}[H]\centering\begin{tabular}{|l|l|}\hline Training samples & 7352 \\ \hline Test samples & 2947 \\ \hline Combined samples & 10299 \\ \hline Features & 561 \\ \hline Activities & 6 \\ \hline\end{tabular}\end{table}
+\section{PCA Visualization} The first two principal components explain 56.98\% of standardized variance.
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/pca_2d.png}\caption{Two-dimensional PCA projection.}\end{figure}
+\section{K-Means} K-Means was evaluated for $k=2$ through $8$. The highest silhouette score occurred at $k=2$.
+\begin{table}[H]\centering\begin{tabular}{|c|r|c|}\hline $k$ & WCSS (Inertia) & Silhouette Score \\ \hline
+2 & 2191125.77 & 0.4815 \\
+3 & 1840233.65 & 0.3971 \\
+4 & 1701285.12 & 0.2157 \\
+5 & 1575980.77 & 0.1925 \\
+6 & 1499418.10 & 0.1826 \\
+7 & 1442732.62 & 0.1491 \\
+8 & 1389403.52 & 0.1428 \\ \hline
+\end{tabular}\end{table}
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/elbow_curve.png}\caption{Elbow curve.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/silhouette_curve.png}\caption{Silhouette curve.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/kmeans_clusters.png}\caption{K-Means clusters for the selected $k$.}\end{figure}
+\section{DBSCAN} Parameter selection was performed on a representative 2000-observation sample. The selected parameters were $\epsilon=13.2010$ and \texttt{minPts}=5. The selected sample-level configuration produced at least two clusters while maximizing silhouette.
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/dbscan_clusters.png}\caption{DBSCAN clusters and noise.}\end{figure}
+\section{Hierarchical Agglomerative Clustering} Ward linkage was applied to a representative sample of 2000 observations for computational feasibility. The dendrogram uses a 500-observation subset.
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/hierarchical_clusters.png}\caption{Ward hierarchical clusters.}\end{figure}
+\section{Evaluation Metrics}
+\begin{figure}[H]\centering\includegraphics[width=.82\linewidth]{figures/metrics_comparison.png}\caption{Selected clustering metrics.}\end{figure}
+\section{Observations} K-Means selected $k=2$ by maximum silhouette among the tested values. DBSCAN was evaluated using a representative sample for parameter selection and then applied to the full dataset. Ward hierarchical clustering was performed on a representative sample because full agglomerative clustering over all 10299 observations is computationally expensive. ARI and NMI compare clusters with the known activity labels, while the internal metrics evaluate cluster structure without labels.
+\section{Conclusion} The experiment demonstrates the different behaviors of centroid-based, density-based and hierarchical clustering on high-dimensional human activity data. The measured internal and external metrics provide the basis for comparison.
+\end{document}

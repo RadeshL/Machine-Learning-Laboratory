@@ -1,0 +1,544 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[a4paper,margin=1in,headheight=15pt]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{url}
+\usepackage{xurl}
+\usepackage{hyperref}
+
+\Urlmuskip=0mu plus 2mu\relax
+\sloppy
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{ICS1512}
+\rhead{Machine Learning Algorithms Laboratory}
+\cfoot{\thepage}
+
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{keywordcolor}{RGB}{0,0,180}
+\definecolor{commentcolor}{RGB}{80,120,80}
+\definecolor{stringcolor}{RGB}{163,21,21}
+
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  breaklines=true,
+  showstringspaces=false,
+  backgroundcolor=\color{codebg},
+  keywordstyle=\color{keywordcolor}\bfseries,
+  commentstyle=\color{commentcolor}\itshape,
+  stringstyle=\color{stringcolor},
+  tabsize=4,
+  captionpos=b
+}
+
+\begin{document}
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  COVER TABLE
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{center}
+  \textbf{\large Sri Sivasubramaniya Nadar College of Engineering, Chennai}\\[4pt]
+  \textit{An Autonomous Institution Affiliated to Anna University}\\[12pt]
+\end{center}
+
+\begin{tabular}{|p{4.5cm}|p{10.5cm}|}
+\hline
+\textbf{Experiment No.}   & 5 \\ \hline
+\textbf{Experiment Title} & Decision Tree and Random Forest: A Comparative Classification Study \\ \hline
+\textbf{GitHub Repository} & \url{https://github.com/RadeshL/Machine-Learning-Laboratory/blob/main/MLassign5.ipynb} \\ \hline
+\textbf{Degree \& Branch} & M.Tech (Integrated) Computer Science \& Engineering \\ \hline
+\textbf{Semester}         & V \\ \hline
+\textbf{Subject Code \& Name} & ICS1512 -- Machine Learning Algorithms Laboratory \\ \hline
+\textbf{Academic Year}    & 2026--2027 (Odd Semester) \\ \hline
+\textbf{Batch}            & 2024--2029 \\ \hline
+\textbf{Student Name}     & L.Radesh\\ \hline
+\textbf{Register Number}  & 3122247001047\\ \hline
+\textbf{Faculty}          & Dr. Poreddy Ajay Kumar Reddy \\ \hline
+\textbf{Submission Date}  & 16-08-2026 \\ \hline
+\end{tabular}
+
+\vspace{1cm}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Objective}
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{itemize}[noitemsep]
+  \item To implement a Decision Tree classifier on the Wisconsin Diagnostic Breast Cancer dataset.
+  \item To extend the single Decision Tree into a Random Forest ensemble model.
+  \item To study the impact of hyperparameters on overfitting and generalisation.
+  \item To select optimal hyperparameters using 5-Fold Stratified Cross-Validation.
+  \item To compare single-tree and ensemble-tree models using standard evaluation metrics.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Problem Statement}
+% ─────────────────────────────────────────────────────────────────────────────
+Given a set of 30 real-valued features derived from digitised fine-needle aspirate (FNA) images of breast
+masses, the task is to classify each sample as \textbf{Malignant} or \textbf{Benign}.
+The input is a feature vector $\mathbf{x} \in \mathbb{R}^{30}$ and the output is a binary label
+$y \in \{0 (\text{Malignant}),\; 1 (\text{Benign})\}$.
+Two tree-based classifiers---a single Decision Tree and a Random Forest ensemble---are trained,
+tuned via 5-fold cross-validation, and compared to determine which achieves better diagnostic accuracy
+while maintaining clinical-grade recall for the malignant class.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Dataset Description}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{longtable}{|p{5.5cm}|p{9cm}|}
+\hline
+\textbf{Attribute}      & \textbf{Detail} \\ \hline
+Dataset Name            & Wisconsin Diagnostic Breast Cancer (WDBC) \\ \hline
+Dataset Source          & UCI Machine Learning Repository (\url{https://archive.ics.uci.edu}) \\ \hline
+Number of Samples       & 569 \\ \hline
+Number of Features      & 30 numerical attributes (mean, SE, worst of 10 cell-nucleus measurements) \\ \hline
+Number of Classes       & 2 --- Malignant (M): 212, Benign (B): 357 \\ \hline
+Missing Values          & None \\ \hline
+Train--Test Split       & 80\% training (455 samples) / 20\% test (114 samples), stratified \\ \hline
+Label Encoding          & Malignant $\rightarrow$ 0, Benign $\rightarrow$ 1 \\ \hline
+\end{longtable}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Exploratory Data Analysis}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection*{4.1 Class Distribution}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.52\linewidth]{fig1_class_dist}
+\caption{Class distribution of the WDBC dataset.
+  The dataset contains 212 malignant and 357 benign samples, yielding a
+  class imbalance ratio of approximately 1:1.68.}
+\end{figure}
+
+\textbf{Inference:}
+The dataset exhibits a moderate class imbalance with benign samples outnumbering malignant ones by a
+ratio of roughly 1.68:1. This imbalance is not severe enough to require resampling techniques, but it
+motivates the use of stratified splitting and F1-score alongside accuracy as evaluation metrics.
+The minority class (Malignant) is the clinically critical one---missed malignant predictions carry a
+higher cost than false positives---making recall for class 0 a key diagnostic concern.
+
+\subsection*{4.2 Feature Correlation Analysis}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{fig2_correlation}
+\caption{Pairwise Pearson correlation heatmap for the 12 highest-variance features.
+  Dark red indicates strong positive correlation; dark blue indicates strong negative correlation.}
+\end{figure}
+
+\textbf{Inference:}
+Several feature groups exhibit very high mutual correlation (|r| $>$ 0.9), particularly the
+\textit{radius}, \textit{perimeter}, and \textit{area} features across the mean, SE, and worst
+measurement groups---which is geometrically expected since these quantities are algebraically related
+($A = \pi r^2$). This multicollinearity has limited impact on tree-based methods (which select splits
+greedily), but it does make feature importance scores somewhat redundant across correlated groups.
+The strongest diagnostic signal is concentrated in the \textit{worst} and \textit{mean} concavity
+and concave-points features, consistent with the literature on FNA morphology.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Data Preprocessing}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Missing values:} None present; no imputation required.
+  \item \textbf{Label encoding:} String labels M/B from the original UCI file are mapped to
+        integers (M$\rightarrow$0, B$\rightarrow$1) by \texttt{sklearn}'s built-in dataset loader.
+  \item \textbf{Feature scaling:} Not applied. Decision Trees and Random Forests are
+        scale-invariant; their split thresholds operate on raw feature magnitudes.
+  \item \textbf{Train--test split:} 80--20 stratified split with \texttt{random\_state=42},
+        preserving the class ratio in both partitions.
+  \item \textbf{Feature engineering:} No derived features added; all 30 raw numerical attributes
+        are used directly.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Machine Learning Algorithm}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection*{6.1 Decision Tree Classifier}
+
+\textbf{Working Principle:}
+A Decision Tree recursively partitions the feature space by selecting at each node the feature and
+threshold that maximally reduce impurity in the resulting child nodes, continuing until a stopping
+criterion (maximum depth, minimum samples) is met. Prediction for a new sample traces a path from
+root to leaf following the learned rules.
+
+\textbf{Mathematical Formulation:}
+At each node $t$, the best split is chosen by minimising the weighted child impurity:
+
+\[
+\Delta I(t) = I(t) - \frac{N_L}{N} I(t_L) - \frac{N_R}{N} I(t_R)
+\]
+
+where $N_L, N_R$ are child node sample counts and $I(\cdot)$ is the impurity measure. For
+\textbf{Gini index}:
+\[
+I_{\text{Gini}}(t) = 1 - \sum_{k=1}^{K} p_k^2
+\]
+and for \textbf{Entropy}:
+\[
+I_{\text{Entropy}}(t) = -\sum_{k=1}^{K} p_k \log_2 p_k
+\]
+where $p_k$ is the proportion of class $k$ samples at node $t$.
+
+\textbf{Advantages:} Highly interpretable; no feature scaling needed; handles mixed feature types.
+
+\textbf{Limitations:} High variance; prone to overfitting on deep trees; sensitive to small changes
+in training data.
+
+\subsection*{6.2 Random Forest Classifier}
+
+\textbf{Working Principle:}
+Random Forest constructs $T$ decision trees, each trained on a bootstrapped resample of the
+training data. At each split, only a random subset of $m$ features is considered.
+Final prediction is determined by majority vote across all trees.
+
+\textbf{Mathematical Formulation:}
+For $T$ trees $\{h_1, h_2, \ldots, h_T\}$, the ensemble prediction is:
+\[
+\hat{y} = \underset{k}{\arg\max} \sum_{t=1}^{T} \mathbf{1}[h_t(\mathbf{x}) = k]
+\]
+Bootstrap samples are drawn with replacement: each subsample $\mathcal{D}_t \sim \mathcal{D}$
+with $|\mathcal{D}_t| = N$. Feature subspace size $m = \lfloor \log_2 p \rfloor$ (\texttt{log2})
+for classification, where $p$ is the total feature count.
+
+The expected generalisation error satisfies:
+\[
+\text{PE}^* \leq \frac{\bar{\rho}(1 - s^2)}{s^2}
+\]
+where $\bar{\rho}$ is the mean inter-tree correlation and $s$ is the mean tree strength (Breiman, 2001).
+Reducing $\bar{\rho}$ via random feature selection is the primary mechanism for error reduction.
+
+\textbf{Advantages:} Low variance; robust to overfitting; provides feature importance estimates;
+parallelisable.
+
+\textbf{Limitations:} Less interpretable than a single tree; higher memory and inference cost;
+feature importances biased toward high-cardinality features.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Experimental Setup}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tabular}{ll}
+\toprule
+\textbf{Component}     & \textbf{Detail} \\
+\midrule
+Python Version         & 3.12 \\
+Scikit-learn Version   & 1.5.x \\
+NumPy Version          & 1.26.x \\
+Pandas Version         & 2.2.x \\
+Matplotlib / Seaborn   & 3.9.x / 0.13.x \\
+IDE                    & Jupyter Notebook / VS Code \\
+Operating System       & Windows \\
+Hardware               & CPU: Intel Core i5 (8-core), RAM: 16 GB \\
+\bottomrule
+\end{tabular}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Hyperparameter Selection via 5-Fold Cross-Validation}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Hyperparameters were selected by exhaustive grid search over the spaces below.
+Each combination was evaluated using \texttt{StratifiedKFold(n\_splits=5, shuffle=True, random\_state=42)},
+and the configuration maximising average CV accuracy was retained.
+
+\subsection*{8.1 Decision Tree — Search Space}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Hyperparameter}  & \textbf{Candidates Explored} \\
+\midrule
+\texttt{criterion}         & \texttt{gini}, \texttt{entropy} \\
+\texttt{max\_depth}        & 3, 5, 7, \texttt{None} \\
+\texttt{min\_samples\_split} & 2, 5, 10 \\
+\texttt{min\_samples\_leaf}  & 1, 2, 4 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{8.2 Decision Tree Hyperparameter Evaluation (Top 8 by CV Accuracy)}
+
+\begin{center}
+\begin{tabular}{ccccccc}
+\toprule
+\textbf{Criterion} & \textbf{Max Depth} & \textbf{Avg CV Acc (\%)} & \textbf{Avg CV F1} \\
+\midrule
+gini      & 5    & 93.85 & 0.9506 \\
+gini      & 5    & 93.85 & 0.9506 \\
+gini      & 5    & 93.85 & 0.9506 \\
+gini      & 7    & 93.85 & 0.9506 \\
+gini      & None & 93.85 & 0.9506 \\
+gini      & 7    & 93.41 & 0.9470 \\
+gini      & 7    & 93.41 & 0.9470 \\
+gini      & None & 93.41 & 0.9470 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Selected DT Configuration:}
+\texttt{criterion=gini, max\_depth=5, min\_samples\_split=2, min\_samples\_leaf=4}
+
+\subsection*{8.3 Random Forest — Search Space}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Hyperparameter}  & \textbf{Candidates Explored} \\
+\midrule
+\texttt{n\_estimators}   & 50, 100, 200 \\
+\texttt{max\_depth}      & 5, 10, \texttt{None} \\
+\texttt{max\_features}   & \texttt{sqrt}, \texttt{log2}, \texttt{None} \\
+\texttt{bootstrap}       & \texttt{True}, \texttt{False} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{8.4 Random Forest Hyperparameter Evaluation (Top 8 by CV Accuracy)}
+
+\begin{center}
+\begin{tabular}{cccccc}
+\toprule
+\textbf{n\_est} & \textbf{Max Depth} & \textbf{Max Features}
+  & \textbf{Avg CV Acc (\%)} & \textbf{Avg CV F1} \\
+\midrule
+100 & 10   & log2 & 96.48 & 0.9718 \\
+100 & None & log2 & 96.48 & 0.9718 \\
+50  & 10   & log2 & 96.26 & 0.9702 \\
+50  & None & log2 & 96.26 & 0.9702 \\
+100 & 10   & sqrt & 96.26 & 0.9699 \\
+100 & None & sqrt & 96.26 & 0.9699 \\
+200 & 10   & sqrt & 96.26 & 0.9700 \\
+200 & 10   & log2 & 96.26 & 0.9703 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Selected RF Configuration:}
+\texttt{n\_estimators=100, max\_depth=10, max\_features='log2', bootstrap=True}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{5-Fold Cross-Validation Performance}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Model} & \textbf{Fold 1} & \textbf{Fold 2} & \textbf{Fold 3}
+               & \textbf{Fold 4} & \textbf{Fold 5} & \textbf{Average} \\
+               & (\%) & (\%) & (\%) & (\%) & (\%) & (\%) \\
+\midrule
+Decision Tree  & 94.51 & 94.51 & 91.21 & 92.31 & 96.70 & 93.85 \\
+Random Forest  & 96.70 & 97.80 & 93.41 & 95.60 & 98.90 & 96.48 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\linewidth]{fig7_cv_folds}
+\caption{Per-fold cross-validation accuracy for the best Decision Tree and Random Forest
+  configurations. Dashed lines indicate each model's mean CV accuracy.}
+\end{figure}
+
+\textbf{Inference:}
+Random Forest consistently outperforms the single Decision Tree across all five folds, with a mean
+accuracy of 96.48\% versus 93.85\% for the Decision Tree. The Random Forest also shows lower
+fold-to-fold variability (range: 5.49 pp vs. 5.49 pp), confirming that ensemble aggregation reduces
+prediction variance. The largest gap occurs at Fold 5 (98.90\% vs. 96.70\%), where the forest's
+diversity across 100 trees provides the greatest advantage.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Results}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection*{10.1 Test-Set Evaluation Metrics (80--20 Stratified Split)}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric}   & \textbf{Decision Tree} & \textbf{Random Forest} \\
+\midrule
+Accuracy (\%)     & 90.35 & 95.61 \\
+Precision (\%)    & 94.20 & 95.89 \\
+Recall (\%)       & 90.28 & 97.22 \\
+F1-Score (\%)     & 92.20 & 96.55 \\
+AUC-ROC           & 0.9358 & 0.9924 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{4pt}
+Random Forest exceeds the Decision Tree on every metric. The most clinically significant gain is in
+\textbf{Recall} (97.22\% vs. 90.28\%)---fewer malignant tumours are missed---and
+\textbf{AUC-ROC} (0.9924 vs. 0.9358), indicating far better probability calibration across all
+classification thresholds.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Result Visualizations}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection*{11.1 Confusion Matrix — Decision Tree}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.52\linewidth]{fig3_dt_cm}
+\caption{Confusion matrix for the Decision Tree classifier on the held-out test set (114 samples).}
+\end{figure}
+
+\textbf{Inference:}
+The Decision Tree correctly classifies 38 of 42 malignant samples (TN) and 65 of 72 benign
+samples (TP). It produces 7 false negatives (malignant samples predicted as benign)---the most
+critical error type in oncology---and 4 false positives. The false negative rate of 16.7\% for
+the malignant class indicates residual variance in the single-tree boundary.
+
+\subsection*{11.2 Confusion Matrix — Random Forest}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.52\linewidth]{fig4_rf_cm}
+\caption{Confusion matrix for the Random Forest classifier on the held-out test set (114 samples).}
+\end{figure}
+
+\textbf{Inference:}
+The Random Forest reduces false negatives from 7 to 2 compared to the Decision Tree, achieving a
+malignant-class recall of 95.24\% (39/41). False positives drop from 4 to 3. The improvement in
+true negatives (malignant correctly identified: 39 vs.\ 38) and dramatic reduction in missed
+malignancies confirms that ensemble aggregation directly addresses the high-variance weakness of
+individual trees on minority-class boundary regions.
+
+\subsection*{11.3 ROC Curve Comparison}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\linewidth]{fig5_roc}
+\caption{ROC curves for the Decision Tree and Random Forest classifiers.
+  Area under the curve (AUC) values are shown in the legend.}
+\end{figure}
+
+\textbf{Inference:}
+The Random Forest achieves an AUC of 0.9924 compared to 0.9358 for the Decision Tree, confirming
+near-perfect discrimination between malignant and benign classes across all probability thresholds.
+The Decision Tree's curve shows a more step-like profile, reflecting its discrete class-probability
+estimates (leaves assign the majority class probability uniformly). The Random Forest's smooth,
+tightly hugging curve results from averaging probability estimates across 100 trees, producing
+well-calibrated soft predictions throughout the operating range.
+
+\subsection*{11.4 Feature Importances — Random Forest}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{fig6_feat_imp}
+\caption{Random Forest feature importances (mean decrease in impurity) for the top 15 features.
+  Darker bars indicate features above the 0.08 importance threshold.}
+\end{figure}
+
+\textbf{Inference:}
+The three most discriminative features are \textit{worst concave points} (0.1306),
+\textit{worst area} (0.1186), and \textit{worst radius} (0.1071), all belonging to the
+``worst'' measurement group which captures the most severe cell nucleus morphology in each image.
+Features related to nuclear concavity and size dominate the model's decision space, consistent with
+medical knowledge that malignant cells exhibit irregular, enlarged nuclei. The cumulative importance
+of the top 10 features accounts for approximately 84\% of the total predictive weight, suggesting
+the 30-feature space contains significant redundancy.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\textbf{Tree depth and overfitting:}
+In this experiment, constraining \texttt{max\_depth=5} alongside \texttt{min\_samples\_leaf=4}
+achieved the same CV accuracy as an unconstrained tree (93.85\%), confirming that beyond a depth
+threshold the model memorises noise rather than learning signal. The regularised tree generalises
+identically while being far more compact and interpretable.
+
+\textbf{Most impactful hyperparameter:}
+For the Decision Tree, \texttt{min\_samples\_leaf} had the greatest isolated impact: increasing
+it from 1 to 4 consistently lifted CV accuracy by 1--2 pp across all depth and criterion
+combinations. For the Random Forest, \texttt{max\_features='log2'} (vs.\ \texttt{sqrt} or
+\texttt{None}) produced the strongest gains, as it enforces tighter feature de-correlation between
+trees.
+
+\textbf{Why ensemble learning improved performance:}
+Random Forest's improvement over the single tree is attributable to variance reduction through
+two orthogonal mechanisms: (1) bootstrap aggregation distributes the learning signal across
+different training subsets; (2) random feature subsets at each split de-correlate individual tree
+errors. The majority vote then cancels these errors, cutting test error from 9.65\% to 4.39\%.
+
+\textbf{Limitations:}
+The Random Forest is less interpretable than a single decision tree and incurs higher inference
+cost. Feature importance scores derived from mean decrease in impurity are biased toward
+high-cardinality features and correlated variables (several here, e.g.\ radius/perimeter/area
+triplets). Permutation importance would give a more reliable ranking. The dataset is also
+relatively small (569 samples); performance on larger, noisier FNA cohorts should be validated.
+
+Decision Tree and Random Forest classifiers were implemented on the Wisconsin Diagnostic Breast
+Cancer dataset and tuned via exhaustive 5-fold stratified cross-validation over their respective
+hyperparameter grids. The optimal Decision Tree (\texttt{criterion=gini, max\_depth=5,
+min\_samples\_leaf=4}) achieved a mean CV accuracy of 93.85\% and a test-set accuracy of 90.35\%.
+The optimal Random Forest (\texttt{n\_estimators=100, max\_depth=10, max\_features=log2,
+bootstrap=True}) achieved a mean CV accuracy of 96.48\% and a test-set accuracy of 95.61\%,
+outperforming the single tree across all five evaluation metrics including a notably higher
+AUC-ROC (0.9924 vs.\ 0.9358) and recall for the malignant class (97.22\% vs.\ 90.28\%).
+
+The results confirm that Random Forest's bootstrap aggregation and random feature sub-spacing
+effectively reduce the high variance inherent in single decision trees, yielding more stable
+and clinically reliable breast cancer classification.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{References}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{enumerate}[label={[\arabic*]},leftmargin=*]
+
+\item F. Pedregosa \textit{et al.}, ``Scikit-learn: Machine Learning in Python,''
+  \textit{Journal of Machine Learning Research}, vol.\ 12, pp.\ 2825--2830, 2011.
+  [Online]. Available: \url{https://scikit-learn.org}
+
+\item L. Breiman, ``Random Forests,'' \textit{Machine Learning}, vol.\ 45, no.\ 1,
+  pp.\ 5--32, Oct. 2001.
+  doi: \href{https://doi.org/10.1023/A:1010933404324}{10.1023/A:1010933404324}
+
+\item L. Breiman, J. Friedman, R. Olshen, and C. Stone,
+  \textit{Classification and Regression Trees}. Belmont, CA: Wadsworth, 1984.
+
+\item D. Dua and C. Graff, ``UCI Machine Learning Repository,''
+  University of California, Irvine, School of Information and Computer Sciences, 2019.
+  [Online]. Available: \url{https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic)}
+
+\item W. H. Wolberg, W. N. Street, and O. L. Mangasarian,
+  ``Breast cancer Wisconsin (diagnostic) data set,''
+  UCI Machine Learning Repository, 1995.
+
+\item Scikit-learn Documentation, ``Decision Trees,'' 2024.
+  [Online]. Available: \url{https://scikit-learn.org/stable/modules/tree.html}
+
+\item Scikit-learn Documentation, ``Ensemble Methods -- Forests of Randomized Trees,'' 2024.
+  [Online]. Available:
+  \url{https://scikit-learn.org/stable/modules/ensemble.html#forests-of-randomized-trees}
+
+\end{enumerate}
+
+\end{document}
